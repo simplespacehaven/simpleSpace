@@ -99,7 +99,7 @@ def calculate_weekly_metrics(data):
     }
 
 
-def generate_html_email(metrics, dashboard_url="https://simplespacehaven.github.io/analytics/"):
+def generate_html_email(metrics, dashboard_url="https://simplespacehaven.github.io/simpleSpace/"):
     """
     Renders an editorial, high-aesthetic HTML newsletter report.
     Compatible with Gmail, Apple Mail, Outlook, and mobile clients.
@@ -315,7 +315,7 @@ def main():
     parser.add_argument("--email", action="store_true", help="Generate and send the weekly email report via SMTP")
     parser.add_argument("--preview", action="store_true", help="Generate local HTML preview of the email")
     parser.add_argument("--dry-run", action="store_true", help="Run full pipeline without making network SMTP calls")
-    parser.add_argument("--dashboard-url", default="https://simplespacehaven.github.io/analytics/", help="URL to the live dashboard")
+    parser.add_argument("--dashboard-url", default="https://simplespacehaven.github.io/simpleSpace/", help="URL to the live dashboard")
 
     args = parser.parse_args()
 
