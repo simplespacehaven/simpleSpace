@@ -1,0 +1,149 @@
+{
+  "niche_id": "glow_sanctuary",
+  "niche_name": "The Glow Sanctuary — Aesthetic Skincare, Vanity & Self-Care",
+  "default_price_max": 899,
+  "default_min_rating": 3.8,
+  "currency_symbol": "₹",
+  "boards": {
+    "Aesthetic Vanity & Skincare Organizers": {
+      "badge": "VANITY MUST-HAVE",
+      "headline_prefix": "Aesthetic Vanity Find",
+      "topics": [
+        "Vanity organization",
+        "Skincare organizer",
+        "Makeup storage",
+        "Acrylic organizer",
+        "Aesthetic room",
+        "Beauty room decor",
+        "Shelfie setup",
+        "Room decor aesthetic",
+        "Compact vanity",
+        "Clean girl aesthetic"
+      ],
+      "queries": [
+        "acrylic makeup organizer drawers vanity",
+        "rotating perfume tray organizer aesthetic",
+        "skincare cosmetic storage display box",
+        "makeup brush holder organizer dustproof",
+        "tiered countertop bathroom vanity tray"
+      ],
+      "hooks": [
+        "The Viral Vanity Organizer That Makes Small Spaces Feel Like A Spa",
+        "How To Organize All Your Skincare In 5 Minutes Without Clutter",
+        "Amazon Vanity Find Every Clean Girl Needs On Her Desk"
+      ]
+    },
+    "Glass Skin Routines & Drugstore Dupes": {
+      "badge": "GLASS SKIN HACK",
+      "headline_prefix": "Korean Glass Skin",
+      "topics": [
+        "Glass skin routine",
+        "Korean skincare",
+        "Skincare routine",
+        "Affordable skincare",
+        "Drugstore dupes",
+        "Skincare tips",
+        "Snail mucin dupe",
+        "Glowing skin",
+        "Clear skin hacks",
+        "Night skincare routine"
+      ],
+      "queries": [
+        "korean skincare serum hydrating glass skin",
+        "snail mucin essence hydrating face serum",
+        "gentle face cleansing spatula silicone",
+        "hydrating skin barrier repair moisturizer",
+        "niacinamide serum for glowing skin"
+      ],
+      "hooks": [
+        "The 3-Step Glass Skin Routine That Actually Works Under ₹699",
+        "Affordable Drugstore Dupes That Give You An Instant Glow",
+        "Stop Wasting Money On Expensive Skincare: Try This Amazon Hack"
+      ]
+    },
+    "Viral Beauty Tools & Facial Sculpting": {
+      "badge": "VIRAL BEAUTY TOOL",
+      "headline_prefix": "Facial Sculpting Tool",
+      "topics": [
+        "Gua sha routine",
+        "Facial sculpting",
+        "Ice roller benefits",
+        "Beauty tools",
+        "At home spa",
+        "Morning depuff routine",
+        "Skincare tools",
+        "Jawline sculpting",
+        "Lymphatic drainage",
+        "Glow up routine"
+      ],
+      "queries": [
+        "stainless steel gua sha facial sculpting tool",
+        "ice roller for face morning depuff",
+        "ultrasonic facial skin scrubber pore cleaner",
+        "facial steamer for deep cleansing spa",
+        "derma roller for face microneedle"
+      ],
+      "hooks": [
+        "The Morning Depuff Tool That Takes Away Swelling In 3 Minutes",
+        "Jawline Sculpting Hack Dermatologists Swear By",
+        "Turn Your Bedroom Into A Luxury Spa With This Amazon Find"
+      ]
+    },
+    "Heatless Hair Styling & Scalp Care": {
+      "badge": "HAIR WELLNESS HACK",
+      "headline_prefix": "Heatless Hair Routine",
+      "topics": [
+        "Heatless curls",
+        "Heatless hair styling",
+        "Scalp care for hair growth",
+        "Scalp massager",
+        "Satin sleep bonnet",
+        "Healthy hair routine",
+        "Hair care tips",
+        "Blowout hacks",
+        "Hair care routine",
+        "Clean girl hair"
+      ],
+      "queries": [
+        "heatless curling rod headband silk satin",
+        "silicone scalp massager shampoo brush for hair growth",
+        "pure mulberry silk satin bonnet for sleeping",
+        "microfiber hair towel wrap anti frizz",
+        "scalp applicator oil comb brush"
+      ],
+      "hooks": [
+        "Wake Up With Salon Blowout Curls (Zero Heat Damage)",
+        "The ₹299 Scalp Hack That Doubled My Hair Growth",
+        "Say Goodbye To Frizzy Mornings With This 1 Amazon Secret"
+      ]
+    },
+    "Aesthetic Bath & Self-Care Sanctuary": {
+      "badge": "SELF-CARE RITUAL",
+      "headline_prefix": "Bath & Body Ritual",
+      "topics": [
+        "Self care Sunday",
+        "Aesthetic bathroom",
+        "Body care routine",
+        "Shower routine",
+        "Korean exfoliating washcloth",
+        "Body scrub",
+        "Spa day at home",
+        "Shower essentials",
+        "Clean aesthetic",
+        "Minimalist bathroom"
+      ],
+      "queries": [
+        "refillable amber pump bottles for shampoo body wash",
+        "korean exfoliating bath washcloth glove",
+        "long handle silicone back scrubber for shower",
+        "bamboo bathtub caddy tray expandable",
+        "aromatherapy shower steamers lavender eucalyptus"
+      ],
+      "hooks": [
+        "Upgrade Your Shower Routine To A 5-Star Hotel Spa For ₹499",
+        "The Korean Bath Secret For The Smoothest Skin Of Your Life",
+        "Renter-Friendly Bath Hack That Looks High-End Luxury"
+      ]
+    }
+  }
+}

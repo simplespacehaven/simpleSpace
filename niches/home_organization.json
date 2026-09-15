@@ -1,0 +1,160 @@
+{
+  "niche_id": "home_organization",
+  "niche_name": "Home Organization & Small Space Hacks",
+  "default_price_max": 999,
+  "default_min_rating": 3.8,
+  "currency_symbol": "₹",
+  "boards": {
+    "Smart Kitchen Essentials & Organization Ideas": {
+      "badge": "KITCHEN SPACE SAVER",
+      "headline_prefix": "Genius Kitchen Hack",
+      "topics": [
+        "Kitchen organization",
+        "Kitchen storage",
+        "Small kitchen",
+        "Kitchen hacks",
+        "Home organization",
+        "Small space living",
+        "Apartment living",
+        "Rental friendly decor",
+        "Pantry organization",
+        "Countertop organization"
+      ],
+      "queries": [
+        "magnetic stove top shelf organizer",
+        "360 rotating lazy susan pantry turntable",
+        "under shelf wire basket hanging storage",
+        "sliding under sink organizer 2 tier",
+        "roll up dish drying rack over sink",
+        "pull out cabinet spice organizer rack",
+        "wall mounted cereal and grain dispenser"
+      ],
+      "hooks": [
+        "How To Double Your Countertop Space in a Small Kitchen",
+        "The Renter-Friendly Kitchen Space Saver You Need",
+        "No-Drill Cabinet Hack For Tiny Apartments",
+        "The $10 Amazon Kitchen Find That Clears All Counter Clutter"
+      ]
+    },
+    "Balcony Essentials & Decor for Small Spaces": {
+      "badge": "BALCONY MAKEOVER",
+      "headline_prefix": "Tiny Balcony Hack",
+      "topics": [
+        "Balcony decor",
+        "Balcony garden",
+        "Small balcony ideas",
+        "Outdoor living",
+        "Small space living",
+        "Apartment living",
+        "Apartment balcony",
+        "Urban gardening",
+        "Container gardening",
+        "Patio decor"
+      ],
+      "queries": [
+        "foldable railing table for apartment balcony",
+        "balcony vertical hanging garden planter pockets",
+        "solar powered fairy string lights outdoor waterproof",
+        "heavy duty balcony railing plant stand hooks",
+        "folding wooden bistro balcony chair set",
+        "artificial vertical garden green leaves mat for balcony"
+      ],
+      "hooks": [
+        "Turn Any Tiny Apartment Balcony Into a Cozy Oasis",
+        "Weatherproof Balcony Space-Saver For Small Homes",
+        "Renter-Safe Railing Hack For Urban Balconies",
+        "How To Turn a 4x4 Balcony Into Your Favorite Coffee Nook"
+      ]
+    },
+    "Small Bathroom Makeover": {
+      "badge": "BATHROOM MUST-HAVE",
+      "headline_prefix": "Rental Bathroom Hack",
+      "topics": [
+        "Bathroom organization",
+        "Bathroom storage",
+        "Small bathroom",
+        "Bathroom decor",
+        "Shower remodel",
+        "Home organization",
+        "Small space living",
+        "Apartment living",
+        "Rental friendly decor",
+        "Cleaning hacks"
+      ],
+      "queries": [
+        "corner shower caddy adhesive matte black rustproof",
+        "automatic toothpaste dispenser and toothbrush holder wall mount",
+        "over the toilet storage rack organizer space saving",
+        "sliding under bathroom sink tiered organizer drawer",
+        "hair dryer and straightener holder wall mount adhesive",
+        "diatomaceous earth fast drying stone bath mat"
+      ],
+      "hooks": [
+        "No-Drill Bathroom Storage Hack That Holds 10kg+",
+        "How To Organize A Tiny Renter Bathroom Without Drilling",
+        "Rustproof Shower Organizer That Saves Tons Of Space",
+        "Spa-Like Bathroom Organization Hacks For Rental Apartments"
+      ]
+    },
+    "Bedroom Essentials": {
+      "badge": "WARDROBE HACK",
+      "headline_prefix": "Small Bedroom Space Saver",
+      "topics": [
+        "Bedroom decor",
+        "Small bedroom ideas",
+        "Closet organization",
+        "Home organization",
+        "Small space living",
+        "Apartment living",
+        "Rental friendly decor",
+        "Storage ideas",
+        "Minimalist living",
+        "Room makeover"
+      ],
+      "queries": [
+        "space saving 9 hole wonder magic clothes hanger",
+        "under bed storage bag with clear window and reinforced handles",
+        "hanging closet shelf organizer multi tier fabric",
+        "honeycomb drawer divider organizer for socks and undergarments",
+        "bedside caddy pocket organizer felt hanging for mattress",
+        "vacuum compression storage bags jumbo with hand pump"
+      ],
+      "hooks": [
+        "How To Triple Your Closet Space in 5 Minutes",
+        "Under-Bed Storage Hack For Clutter-Free Bedrooms",
+        "Wardrobe Space Saver Every Small Apartment Needs",
+        "How To Fit 50+ Clothes in a Tiny Rental Wardrobe"
+      ]
+    },
+    "Living Room Decor for Small Spaces": {
+      "badge": "APARTMENT MUST-HAVE",
+      "headline_prefix": "Living Room Space Saver",
+      "topics": [
+        "Small space living",
+        "Living room decor",
+        "Apartment living",
+        "Home organization",
+        "Rental friendly decor",
+        "Storage ideas",
+        "Minimalist living",
+        "Budget home decor",
+        "Interior styling",
+        "Apartment therapy"
+      ],
+      "queries": [
+        "minimalist floating wall shelves set of 3 wood",
+        "wooden cable management box organizer hider for cords",
+        "sofa armrest tray clip on table for couch",
+        "corner display ladder shelf 4 tier small living room",
+        "foldable ottoman storage footrest linen collapsible",
+        "wall mounted acrylic clear bookshelf display ledge"
+      ],
+      "hooks": [
+        "Minimalist Living Room Hack For Clutter-Free Spaces",
+        "Hide Ugly Cords Instantly With This Renter Find",
+        "Budget Decor Hack That Makes Small Living Rooms Feel Huge",
+        "Aesthetic Small Living Room Finds You Wish You Discovered Sooner"
+      ]
+    }
+  }
+}

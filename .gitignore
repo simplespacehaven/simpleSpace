@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Sensitive credentials
+blogger_credentials.json
+
+# Local output / large zip bundles
+PinAutopilot_Windows_theGS.zip
+PinAutopilot_Windows/
+output/pins/
+output/*.csv
+base_images/*.jpg
+base_images/*.png

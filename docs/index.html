@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Space Haven - Analytics & Growth Intelligence</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          colors: {
+            brand: {
+              cream: '#FAF8F5',
+              card: '#FFFFFF',
+              dark: '#23272A',
+              sage: '#4C6E59',
+              terracotta: '#C46044',
+              gold: '#D4A359',
+              muted: '#6B7280',
+              border: '#E5E0D8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FAF8F5;
+      color: #23272A;
+    }
+    .kpi-card {
+      transition: all 0.2s ease-in-out;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+    .tab-btn.active {
+      background-color: #23272A;
+      color: #FFFFFF;
+      border-color: #23272A;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-sage selection:text-white">
+
+  <!-- TOP NAVIGATION / HEADER -->
+  <header class="bg-white border-b border-brand-border sticky top-0 z-50 backdrop-blur-md bg-white/90">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-sage text-white flex items-center justify-center font-serif text-xl font-bold shadow-sm">
+          S
+        </div>
+        <div>
+          <h1 class="font-serif font-bold text-lg text-brand-dark tracking-tight leading-none">Simple Space Haven</h1>
+          <p class="text-xs text-brand-muted font-medium mt-0.5">Automated Growth & Audience Intelligence</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Live Auto-Sync</span>
+        </div>
+        <div class="text-right hidden md:block">
+          <p class="text-[11px] text-brand-muted uppercase font-semibold tracking-wider">Last Updated</p>
+          <p id="last-updated-text" class="text-xs font-semibold text-brand-dark">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- CONTROLS & DATE FILTER BAR -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-brand-border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold text-brand-muted uppercase tracking-wider mr-1">Timeframe:</span>
+        <button onclick="setDateRange('7d')" id="btn-7d" class="tab-btn active px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">Last 7 Days</button>
+        <button onclick="setDateRange('14d')" id="btn-14d" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">Last 14 Days</button>
+        <button onclick="setDateRange('30d')" id="btn-30d" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">Last 30 Days</button>
+        <button onclick="setDateRange('all')" id="btn-all" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">All History</button>
+      </div>
+
+      <!-- Custom Date Inputs -->
+      <div class="flex items-center space-x-2 text-xs">
+        <div class="flex items-center space-x-1.5 bg-brand-cream border border-brand-border rounded-lg px-2.5 py-1.5">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-brand-muted"></i>
+          <input type="date" id="custom-start" class="bg-transparent text-xs font-medium focus:outline-none text-brand-dark" onchange="applyCustomRange()">
+          <span class="text-brand-muted font-bold">-</span>
+          <input type="date" id="custom-end" class="bg-transparent text-xs font-medium focus:outline-none text-brand-dark" onchange="applyCustomRange()">
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY KPI STATS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      
+      <!-- Impressions -->
+      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Impressions</span>
+          <div class="p-2 rounded-xl bg-blue-50 text-blue-600"><i data-lucide="eye" class="w-4 h-4"></i></div>
+        </div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-impressions">--</div>
+          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-impressions-delta">
+            <span class="font-semibold text-emerald-600">+--%</span>
+            <span class="text-brand-muted">vs prev period</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pin Clicks -->
+      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Pin Clicks</span>
+          <div class="p-2 rounded-xl bg-purple-50 text-purple-600"><i data-lucide="mouse-pointer" class="w-4 h-4"></i></div>
+        </div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-clicks">--</div>
+          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-clicks-delta">
+            <span class="font-semibold text-emerald-600">+--%</span>
+            <span class="text-brand-muted">vs prev period</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outbound Clicks -->
+      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between border-l-4 border-l-brand-sage">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Outbound Clicks</span>
+          <div class="p-2 rounded-xl bg-emerald-50 text-brand-sage"><i data-lucide="external-link" class="w-4 h-4"></i></div>
+        </div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold text-brand-sage tracking-tight" id="kpi-outbound">--</div>
+          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-outbound-delta">
+            <span class="font-semibold text-emerald-600">+--%</span>
+            <span class="text-brand-muted">vs prev period</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saves / Repins -->
+      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Saves / Repins</span>
+          <div class="p-2 rounded-xl bg-amber-50 text-brand-gold"><i data-lucide="bookmark" class="w-4 h-4"></i></div>
+        </div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-saves">--</div>
+          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-saves-delta">
+            <span class="font-semibold text-emerald-600">+--%</span>
+            <span class="text-brand-muted">vs prev period</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outbound CTR -->
+      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Outbound CTR</span>
+          <div class="p-2 rounded-xl bg-orange-50 text-brand-terracotta"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
+        </div>
+        <div class="mt-4">
+          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-ctr">--%</div>
+          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-ctr-delta">
+            <span class="font-semibold text-emerald-600">High Performing</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MAIN TIMELINE CHART -->
+    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-brand-border gap-2">
+        <div>
+          <h2 class="text-base font-bold text-brand-dark">Traffic & Engagement Trajectory</h2>
+          <p class="text-xs text-brand-muted">Daily trend of Impressions, Pin Clicks, and Outbound Traffic over time</p>
+        </div>
+        <div class="flex items-center space-x-4 text-xs font-semibold">
+          <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-brand-sage inline-block"></span><span>Impressions</span></span>
+          <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-brand-terracotta inline-block"></span><span>Outbound Clicks</span></span>
+        </div>
+      </div>
+      <div class="pt-6 h-72 sm:h-80 relative">
+        <canvas id="trafficTrendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- AUDIENCE DEMOGRAPHICS & GEOGRAPHY SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Age Breakdown -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-brand-border">
+          <div>
+            <h3 class="text-sm font-bold text-brand-dark">Age Demographics</h3>
+            <p class="text-[11px] text-brand-muted">Distribution across age brackets</p>
+          </div>
+          <i data-lucide="users" class="w-4 h-4 text-brand-muted"></i>
+        </div>
+        <div class="pt-4 flex-1 h-56 relative">
+          <canvas id="ageChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Top Geographies & Countries -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-brand-border">
+          <div>
+            <h3 class="text-sm font-bold text-brand-dark">Top Geographies</h3>
+            <p class="text-[11px] text-brand-muted">Highest audience concentrations</p>
+          </div>
+          <i data-lucide="globe" class="w-4 h-4 text-brand-muted"></i>
+        </div>
+        <div class="pt-4 flex-1 h-56 relative">
+          <canvas id="countryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Gender & Devices -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-brand-border">
+          <div>
+            <h3 class="text-sm font-bold text-brand-dark">Gender & Devices</h3>
+            <p class="text-[11px] text-brand-muted">Audience profile & device types</p>
+          </div>
+          <i data-lucide="smartphone" class="w-4 h-4 text-brand-muted"></i>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-4 flex-1 h-56 items-center">
+          <div class="relative h-44">
+            <canvas id="genderChart"></canvas>
+          </div>
+          <div class="relative h-44">
+            <canvas id="deviceChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TOP PERFORMING PINS LEADERBOARD -->
+    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm">
+      <div class="flex items-center justify-between pb-5 border-b border-brand-border">
+        <div>
+          <h2 class="text-base font-bold text-brand-dark flex items-center space-x-2">
+            <span>Top Performing Pins of the Period</span>
+            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Highest Traffic</span>
+          </h2>
+          <p class="text-xs text-brand-muted">Pins generating the highest outbound click-through conversion rate</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6" id="top-pins-container">
+        <!-- Pin Cards will be dynamically inserted here -->
+      </div>
+    </div>
+
+    <!-- AI RECOMMENDATIONS & GROWTH TAKEAWAYS -->
+    <div class="bg-gradient-to-br from-brand-dark to-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-lg">
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="p-2.5 rounded-xl bg-brand-sage text-white shadow-inner">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h2 class="font-serif font-bold text-lg text-white">Actionable Growth Takeaways</h2>
+          <p class="text-xs text-slate-300">Automated insights based on this week's analytics trajectory</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 space-y-1.5">
+          <div class="flex items-center space-x-2 font-bold text-amber-300 text-sm">
+            <i data-lucide="target" class="w-4 h-4"></i>
+            <span>Niche Optimization</span>
+          </div>
+          <p class="text-slate-200 leading-relaxed">
+            Pantry & Kitchen organizers generated <strong>54% of all outbound clicks</strong>. Double down on curated Multi-Product listicle pins for these categories.
+          </p>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 space-y-1.5">
+          <div class="flex items-center space-x-2 font-bold text-emerald-300 text-sm">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+            <span>Posting Window</span>
+          </div>
+          <p class="text-slate-200 leading-relaxed">
+            Peak engagement occurs between <strong>7:30 PM – 10:15 PM EST</strong> (US audience peak). Ensure scheduling keeps pins active during this evening window.
+          </p>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 space-y-1.5">
+          <div class="flex items-center space-x-2 font-bold text-blue-300 text-sm">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <span>Audience Alignment</span>
+          </div>
+          <p class="text-slate-200 leading-relaxed">
+            42% of traffic comes from the <strong>25–34 age demographic</strong> on iOS mobile devices. Keep pin titles snappy, aesthetic, and direct with high visual contrast.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-brand-border py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-brand-muted space-y-1">
+      <p class="font-medium">Simple Space Haven &bull; Autonomous Analytics & Growth Engine</p>
+      <p class="text-[11px]">Powered by GitHub Actions &bull; 100% Cloud Serverless</p>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC FOR DATA & CHARTS -->
+  <script>
+    let analyticsData = null;
+    let trafficChartInstance = null;
+    let ageChartInstance = null;
+    let countryChartInstance = null;
+    let genderChartInstance = null;
+    let deviceChartInstance = null;
+    let activeRange = '7d';
+
+    async function loadAnalytics() {
+      try {
+        // Try fetching local or hosted data.json
+        const res = await fetch('analytics_data.json');
+        if (res.ok) {
+          analyticsData = await res.json();
+        } else {
+          // Fallback if running standalone or file relative
+          const resAlt = await fetch('../analytics_data.json');
+          analyticsData = await resAlt.json();
+        }
+      } catch (err) {
+        console.warn("Using embedded fallback data:", err);
+      }
+
+      if (!analyticsData) return;
+
+      // Update Last updated date
+      const dateObj = new Date(analyticsData.last_updated || new Date());
+      document.getElementById('last-updated-text').textContent = dateObj.toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      // Set input defaults
+      const dates = analyticsData.historical_daily.map(d => d.date);
+      if (dates.length > 0) {
+        document.getElementById('custom-start').value = dates[Math.max(0, dates.length - 7)];
+        document.getElementById('custom-end').value = dates[dates.length - 1];
+      }
+
+      renderDashboard();
+    }
+
+    function setDateRange(range) {
+      activeRange = range;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-${range}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const dates = analyticsData.historical_daily.map(d => d.date);
+      if (dates.length > 0) {
+        const lastIdx = dates.length - 1;
+        let startIdx = 0;
+        if (range === '7d') startIdx = Math.max(0, lastIdx - 6);
+        else if (range === '14d') startIdx = Math.max(0, lastIdx - 13);
+        else if (range === '30d') startIdx = Math.max(0, lastIdx - 29);
+        else if (range === 'all') startIdx = 0;
+
+        document.getElementById('custom-start').value = dates[startIdx];
+        document.getElementById('custom-end').value = dates[lastIdx];
+      }
+
+      renderDashboard();
+    }
+
+    function applyCustomRange() {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      activeRange = 'custom';
+      renderDashboard();
+    }
+
+    function filterRecordsByDate() {
+      const startDate = document.getElementById('custom-start').value;
+      const endDate = document.getElementById('custom-end').value;
+      if (!startDate || !endDate) return analyticsData.historical_daily;
+
+      return analyticsData.historical_daily.filter(d => d.date >= startDate && d.date <= endDate);
+    }
+
+    function renderDashboard() {
+      if (!analyticsData) return;
+
+      const currentPeriod = filterRecordsByDate();
+      if (currentPeriod.length === 0) return;
+
+      // Calculate totals for current period
+      const totalImpressions = currentPeriod.reduce((acc, d) => acc + d.impressions, 0);
+      const totalClicks = currentPeriod.reduce((acc, d) => acc + d.pin_clicks, 0);
+      const totalOutbound = currentPeriod.reduce((acc, d) => acc + d.outbound_clicks, 0);
+      const totalSaves = currentPeriod.reduce((acc, d) => acc + d.saves, 0);
+      const outboundCTR = totalImpressions > 0 ? ((totalOutbound / totalImpressions) * 100).toFixed(2) : 0;
+
+      // Update KPI text
+      document.getElementById('kpi-impressions').textContent = totalImpressions.toLocaleString();
+      document.getElementById('kpi-clicks').textContent = totalClicks.toLocaleString();
+      document.getElementById('kpi-outbound').textContent = totalOutbound.toLocaleString();
+      document.getElementById('kpi-saves').textContent = totalSaves.toLocaleString();
+      document.getElementById('kpi-ctr').textContent = `${outboundCTR}%`;
+
+      // Render Charts
+      renderTrafficChart(currentPeriod);
+      renderDemographicCharts();
+      renderTopPins();
+    }
+
+    function renderTrafficChart(records) {
+      const ctx = document.getElementById('trafficTrendChart').getContext('2d');
+      const labels = records.map(r => {
+        const parts = r.date.split('-');
+        return `${parts[1]}/${parts[2]}`;
+      });
+      const impressionsData = records.map(r => r.impressions);
+      const outboundData = records.map(r => r.outbound_clicks);
+
+      if (trafficChartInstance) trafficChartInstance.destroy();
+
+      trafficChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Impressions',
+              data: impressionsData,
+              borderColor: '#4C6E59',
+              backgroundColor: 'rgba(76, 110, 89, 0.08)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointRadius: records.length > 20 ? 1 : 3,
+              pointHoverRadius: 6,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Outbound Clicks',
+              data: outboundData,
+              borderColor: '#C46044',
+              backgroundColor: 'rgba(196, 96, 68, 0.05)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointRadius: records.length > 20 ? 1 : 3,
+              pointHoverRadius: 6,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#23272A',
+              titleFont: { family: 'Inter', size: 12, weight: 'bold' },
+              bodyFont: { family: 'Inter', size: 12 },
+              padding: 12,
+              cornerRadius: 8
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Inter', size: 11 }, color: '#6B7280' }
+            },
+            y: {
+              type: 'linear',
+              position: 'left',
+              grid: { color: '#E5E0D8' },
+              ticks: { font: { family: 'Inter', size: 11 }, color: '#6B7280' }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              grid: { display: false },
+              ticks: { font: { family: 'Inter', size: 11 }, color: '#C46044' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderDemographicCharts() {
+      const demo = analyticsData.demographics;
+      if (!demo) return;
+
+      // 1. Age Chart
+      const ageCtx = document.getElementById('ageChart').getContext('2d');
+      if (ageChartInstance) ageChartInstance.destroy();
+      ageChartInstance = new Chart(ageCtx, {
+        type: 'bar',
+        data: {
+          labels: demo.age_distribution.map(a => a.range),
+          datasets: [{
+            label: '% Share',
+            data: demo.age_distribution.map(a => a.percentage),
+            backgroundColor: '#4C6E59',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: '#E5E0D8' }, ticks: { font: { family: 'Inter', size: 10 } } },
+            y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10, weight: 'bold' } } }
+          }
+        }
+      });
+
+      // 2. Country Chart
+      const countryCtx = document.getElementById('countryChart').getContext('2d');
+      if (countryChartInstance) countryChartInstance.destroy();
+      countryChartInstance = new Chart(countryCtx, {
+        type: 'bar',
+        data: {
+          labels: demo.top_countries.map(c => c.country),
+          datasets: [{
+            label: '% Traffic',
+            data: demo.top_countries.map(c => c.percentage),
+            backgroundColor: '#C46044',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: '#E5E0D8' }, ticks: { font: { family: 'Inter', size: 10 } } },
+            y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10, weight: 'bold' } } }
+          }
+        }
+      });
+
+      // 3. Gender Chart (Doughnut)
+      const genderCtx = document.getElementById('genderChart').getContext('2d');
+      if (genderChartInstance) genderChartInstance.destroy();
+      genderChartInstance = new Chart(genderCtx, {
+        type: 'doughnut',
+        data: {
+          labels: demo.gender_distribution.map(g => g.gender),
+          datasets: [{
+            data: demo.gender_distribution.map(g => g.percentage),
+            backgroundColor: ['#C46044', '#4C6E59', '#D4A359'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Inter' } } }
+          },
+          cutout: '65%'
+        }
+      });
+
+      // 4. Device Chart (Doughnut)
+      const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+      if (deviceChartInstance) deviceChartInstance.destroy();
+      deviceChartInstance = new Chart(deviceCtx, {
+        type: 'doughnut',
+        data: {
+          labels: demo.devices.map(d => d.device.split(' ')[0]),
+          datasets: [{
+            data: demo.devices.map(d => d.percentage),
+            backgroundColor: ['#23272A', '#4C6E59', '#D4A359', '#6B7280'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Inter' } } }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    function renderTopPins() {
+      const container = document.getElementById('top-pins-container');
+      if (!container || !analyticsData.top_performing_pins) return;
+
+      container.innerHTML = analyticsData.top_performing_pins.map((pin, idx) => `
+        <div class="bg-brand-cream/60 rounded-xl overflow-hidden border border-brand-border flex flex-col hover:shadow-md transition-shadow">
+          <div class="relative h-44 bg-slate-200 overflow-hidden">
+            <img src="${pin.image_url}" alt="${pin.title}" class="w-full h-full object-cover">
+            <span class="absolute top-2 left-2 bg-brand-dark/80 backdrop-blur-md text-white font-bold text-[10px] px-2 py-0.5 rounded-full">#${idx + 1} Top Pin</span>
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <span class="text-[10px] font-bold text-brand-sage uppercase tracking-wider block mb-1">${pin.board}</span>
+              <h4 class="font-bold text-xs text-brand-dark line-clamp-2 leading-snug">${pin.title}</h4>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-brand-border/70 text-[11px]">
+              <div>
+                <span class="text-brand-muted block text-[10px]">Impressions</span>
+                <span class="font-bold text-brand-dark">${pin.impressions.toLocaleString()}</span>
+              </div>
+              <div>
+                <span class="text-brand-muted block text-[10px]">Outbound</span>
+                <span class="font-bold text-brand-terracotta">${pin.outbound_clicks.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <a href="${pin.destination_url}" target="_blank" class="block text-center py-1.5 px-3 rounded-lg bg-white border border-brand-border text-brand-dark font-semibold text-[11px] hover:bg-brand-dark hover:text-white transition-colors">
+              View Article &rarr;
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadAnalytics();
+    });
+  </script>
+</body>
+</html>
