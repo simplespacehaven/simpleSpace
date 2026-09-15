@@ -1,0 +1,63 @@
+{
+  "niche_id": "tech_gadgets",
+  "niche_name": "Smart Tech, Desk Setup & Productivity Gadgets",
+  "default_price_max": 1499,
+  "default_min_rating": 4.0,
+  "currency_symbol": "\u20b9",
+  "boards": {
+    "Minimalist Desk Setup & Productivity": {
+      "badge": "DESK SETUP UPGRADE",
+      "headline_prefix": "Minimalist Desk Hack",
+      "topics": [
+        "Desk setup",
+        "Workspace inspiration",
+        "Desk organization",
+        "Home office decor",
+        "Productivity hacks",
+        "Minimalist desk",
+        "Tech gadgets",
+        "Office organization",
+        "Study room decor",
+        "Desk accessories"
+      ],
+      "queries": [
+        "desk cable management tray under desk",
+        "wooden laptop stand ergonomic riser",
+        "minimalist desk pad leather mat",
+        "monitor light bar desk lamp"
+      ],
+      "hooks": [
+        "The \u20b9499 Gadget That Cleans Up Any Messy Desk",
+        "Minimalist Desk Setup Item You Didn't Know You Needed",
+        "How To Upgrade Your Work From Home Station on a Budget"
+      ]
+    },
+    "Genius Smart Tech & Daily Gadgets": {
+      "badge": "GENIUS TECH FIND",
+      "headline_prefix": "Smart Tech Hack",
+      "topics": [
+        "Tech gadgets",
+        "Cool gadgets",
+        "Smart home devices",
+        "Electronics",
+        "Modern living",
+        "Productivity hacks",
+        "Travel gadgets",
+        "Useful gadgets",
+        "Budget tech",
+        "Smart devices"
+      ],
+      "queries": [
+        "magnetic 3 in 1 wireless charging station",
+        "portable mini label maker bluetooth",
+        "smart led motion sensor night light",
+        "retractable fast charging car cable"
+      ],
+      "hooks": [
+        "3 Amazon Tech Gadgets That Feel Like They Are From 2030",
+        "Why Didn't Anyone Tell Me About This Smart Gadget Sooner?",
+        "Insanely Useful Tech Find Under \u20b9999 on Amazon"
+      ]
+    }
+  }
+}

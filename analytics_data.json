@@ -1,0 +1,375 @@
+{
+  "last_updated": "2026-09-15T13:28:03.834230Z",
+  "historical_daily": [
+    {
+      "date": "2026-08-17",
+      "impressions": 1420,
+      "pin_clicks": 98,
+      "outbound_clicks": 42,
+      "saves": 19
+    },
+    {
+      "date": "2026-08-18",
+      "impressions": 1580,
+      "pin_clicks": 112,
+      "outbound_clicks": 48,
+      "saves": 23
+    },
+    {
+      "date": "2026-08-19",
+      "impressions": 1720,
+      "pin_clicks": 125,
+      "outbound_clicks": 55,
+      "saves": 31
+    },
+    {
+      "date": "2026-08-20",
+      "impressions": 1650,
+      "pin_clicks": 118,
+      "outbound_clicks": 50,
+      "saves": 26
+    },
+    {
+      "date": "2026-08-21",
+      "impressions": 1890,
+      "pin_clicks": 140,
+      "outbound_clicks": 62,
+      "saves": 38
+    },
+    {
+      "date": "2026-08-22",
+      "impressions": 2150,
+      "pin_clicks": 165,
+      "outbound_clicks": 78,
+      "saves": 45
+    },
+    {
+      "date": "2026-08-23",
+      "impressions": 2400,
+      "pin_clicks": 185,
+      "outbound_clicks": 89,
+      "saves": 52
+    },
+    {
+      "date": "2026-08-24",
+      "impressions": 2280,
+      "pin_clicks": 172,
+      "outbound_clicks": 81,
+      "saves": 47
+    },
+    {
+      "date": "2026-08-25",
+      "impressions": 2450,
+      "pin_clicks": 190,
+      "outbound_clicks": 92,
+      "saves": 56
+    },
+    {
+      "date": "2026-08-26",
+      "impressions": 2600,
+      "pin_clicks": 205,
+      "outbound_clicks": 101,
+      "saves": 60
+    },
+    {
+      "date": "2026-08-27",
+      "impressions": 2520,
+      "pin_clicks": 198,
+      "outbound_clicks": 97,
+      "saves": 58
+    },
+    {
+      "date": "2026-08-28",
+      "impressions": 2780,
+      "pin_clicks": 220,
+      "outbound_clicks": 110,
+      "saves": 67
+    },
+    {
+      "date": "2026-08-29",
+      "impressions": 3100,
+      "pin_clicks": 250,
+      "outbound_clicks": 128,
+      "saves": 79
+    },
+    {
+      "date": "2026-08-30",
+      "impressions": 3350,
+      "pin_clicks": 275,
+      "outbound_clicks": 142,
+      "saves": 88
+    },
+    {
+      "date": "2026-08-31",
+      "impressions": 3200,
+      "pin_clicks": 260,
+      "outbound_clicks": 134,
+      "saves": 82
+    },
+    {
+      "date": "2026-09-01",
+      "impressions": 3450,
+      "pin_clicks": 282,
+      "outbound_clicks": 149,
+      "saves": 91
+    },
+    {
+      "date": "2026-09-02",
+      "impressions": 3620,
+      "pin_clicks": 301,
+      "outbound_clicks": 160,
+      "saves": 97
+    },
+    {
+      "date": "2026-09-03",
+      "impressions": 3580,
+      "pin_clicks": 295,
+      "outbound_clicks": 155,
+      "saves": 94
+    },
+    {
+      "date": "2026-09-04",
+      "impressions": 3890,
+      "pin_clicks": 325,
+      "outbound_clicks": 174,
+      "saves": 106
+    },
+    {
+      "date": "2026-09-05",
+      "impressions": 4250,
+      "pin_clicks": 360,
+      "outbound_clicks": 196,
+      "saves": 122
+    },
+    {
+      "date": "2026-09-06",
+      "impressions": 4600,
+      "pin_clicks": 395,
+      "outbound_clicks": 218,
+      "saves": 135
+    },
+    {
+      "date": "2026-09-07",
+      "impressions": 4420,
+      "pin_clicks": 378,
+      "outbound_clicks": 205,
+      "saves": 128
+    },
+    {
+      "date": "2026-09-08",
+      "impressions": 4710,
+      "pin_clicks": 405,
+      "outbound_clicks": 224,
+      "saves": 139
+    },
+    {
+      "date": "2026-09-09",
+      "impressions": 4950,
+      "pin_clicks": 428,
+      "outbound_clicks": 239,
+      "saves": 148
+    },
+    {
+      "date": "2026-09-10",
+      "impressions": 4880,
+      "pin_clicks": 419,
+      "outbound_clicks": 231,
+      "saves": 144
+    },
+    {
+      "date": "2026-09-11",
+      "impressions": 5240,
+      "pin_clicks": 458,
+      "outbound_clicks": 258,
+      "saves": 162
+    },
+    {
+      "date": "2026-09-12",
+      "impressions": 5780,
+      "pin_clicks": 510,
+      "outbound_clicks": 290,
+      "saves": 185
+    },
+    {
+      "date": "2026-09-13",
+      "impressions": 6120,
+      "pin_clicks": 545,
+      "outbound_clicks": 315,
+      "saves": 204
+    },
+    {
+      "date": "2026-09-14",
+      "impressions": 5950,
+      "pin_clicks": 528,
+      "outbound_clicks": 302,
+      "saves": 194
+    },
+    {
+      "date": "2026-09-15",
+      "impressions": 6300,
+      "pin_clicks": 560,
+      "outbound_clicks": 325,
+      "saves": 210
+    }
+  ],
+  "demographics": {
+    "age_distribution": [
+      {
+        "range": "18-24",
+        "percentage": 18.5
+      },
+      {
+        "range": "25-34",
+        "percentage": 42.0
+      },
+      {
+        "range": "35-44",
+        "percentage": 24.5
+      },
+      {
+        "range": "45-54",
+        "percentage": 10.2
+      },
+      {
+        "range": "55+",
+        "percentage": 4.8
+      }
+    ],
+    "gender_distribution": [
+      {
+        "gender": "Female",
+        "percentage": 74.2
+      },
+      {
+        "gender": "Male",
+        "percentage": 21.6
+      },
+      {
+        "gender": "Unspecified",
+        "percentage": 4.2
+      }
+    ],
+    "top_countries": [
+      {
+        "country": "United States",
+        "percentage": 44.5,
+        "code": "US"
+      },
+      {
+        "country": "India",
+        "percentage": 26.0,
+        "code": "IN"
+      },
+      {
+        "country": "United Kingdom",
+        "percentage": 12.8,
+        "code": "GB"
+      },
+      {
+        "country": "Canada",
+        "percentage": 8.4,
+        "code": "CA"
+      },
+      {
+        "country": "Australia",
+        "percentage": 4.7,
+        "code": "AU"
+      },
+      {
+        "country": "Others",
+        "percentage": 3.6,
+        "code": "OT"
+      }
+    ],
+    "top_metros": [
+      {
+        "city": "New York, NY",
+        "percentage": 8.4
+      },
+      {
+        "city": "Los Angeles, CA",
+        "percentage": 6.8
+      },
+      {
+        "city": "Bengaluru, IN",
+        "percentage": 6.2
+      },
+      {
+        "city": "London, UK",
+        "percentage": 5.5
+      },
+      {
+        "city": "Mumbai, IN",
+        "percentage": 4.9
+      }
+    ],
+    "devices": [
+      {
+        "device": "Mobile (iOS)",
+        "percentage": 58.0
+      },
+      {
+        "device": "Mobile (Android)",
+        "percentage": 32.5
+      },
+      {
+        "device": "Desktop / Laptop",
+        "percentage": 7.5
+      },
+      {
+        "device": "Tablet / iPad",
+        "percentage": 2.0
+      }
+    ]
+  },
+  "top_performing_pins": [
+    {
+      "id": "pin_01",
+      "title": "7 Aesthetic Pantry Storage Hacks You Need in 2026",
+      "board": "Pantry Organization Ideas",
+      "image_url": "https://images.unsplash.com/photo-1584992236310-6edddc08acff?auto=format&fit=crop&w=600&q=80",
+      "destination_url": "http://simplespacehaven.blogspot.com",
+      "impressions": 18450,
+      "pin_clicks": 1620,
+      "outbound_clicks": 940,
+      "saves": 580,
+      "ctr": 5.1
+    },
+    {
+      "id": "pin_02",
+      "title": "Minimalist Under-Sink Storage Tier Shelf",
+      "board": "Bathroom Organization",
+      "image_url": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=600&q=80",
+      "destination_url": "http://simplespacehaven.blogspot.com",
+      "impressions": 14200,
+      "pin_clicks": 1280,
+      "outbound_clicks": 710,
+      "saves": 430,
+      "ctr": 5.0
+    },
+    {
+      "id": "pin_03",
+      "title": "Spice Drawer Modular Organizer - Before vs After",
+      "board": "Kitchen Organization Hacks",
+      "image_url": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80",
+      "destination_url": "http://simplespacehaven.blogspot.com",
+      "impressions": 12800,
+      "pin_clicks": 1110,
+      "outbound_clicks": 645,
+      "saves": 395,
+      "ctr": 5.04
+    },
+    {
+      "id": "pin_04",
+      "title": "10 Minimalist Desk Cable Management Ideas",
+      "board": "Home Office Aesthetics",
+      "image_url": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=600&q=80",
+      "destination_url": "http://simplespacehaven.blogspot.com",
+      "impressions": 9650,
+      "pin_clicks": 820,
+      "outbound_clicks": 480,
+      "saves": 310,
+      "ctr": 4.97
+    }
+  ]
+}
