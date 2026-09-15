@@ -11,10 +11,12 @@ Simple Space Haven - Autonomous Weekly Analytics & Reporting Engine
 
 import os
 import sys
+import csv
 import json
 import shutil
 import smtplib
 import argparse
+import requests
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -309,15 +311,89 @@ def send_email_report(html_content, subject_date_range):
         return False
 
 
+def fetch_pinterest_api_analytics(access_token):
+    """
+    Fetches real account analytics and audience demographics from Pinterest API v5.
+    """
+    if not access_token:
+        return None
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+
+    # 30 day range
+    end_date = datetime.utcnow().strftime("%Y-%m-%d")
+    start_date = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    url = f"https://api.pinterest.com/v5/user_account/analytics?start_date={start_date}&end_date={end_date}&metric_types=IMPRESSION,PIN_CLICK,OUTBOUND_CLICK,SAVE"
+    
+    try:
+        print(f"Fetching real analytics from Pinterest API ({start_date} to {end_date})...")
+        r = requests.get(url, headers=headers, timeout=20)
+        if r.status_code == 200:
+            api_data = r.json()
+            print("✓ Successfully retrieved live metrics from Pinterest API!")
+            return api_data
+        else:
+            print(f"⚠️  Pinterest API returned status {r.status_code}: {r.text}")
+    except Exception as e:
+        print(f"⚠️  Pinterest API fetch error: {e}")
+    return None
+
+
+def import_pinterest_csv(csv_path):
+    """
+    Imports standard Pinterest Analytics export CSV into analytics_data.json.
+    """
+    path = Path(csv_path)
+    if not path.exists():
+        print(f"❌ File not found: {csv_path}")
+        return False
+
+    records = []
+    with open(path, "r", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Map common Pinterest CSV headers
+            date_val = row.get("Date") or row.get("date")
+            if not date_val:
+                continue
+            records.append({
+                "date": date_val,
+                "impressions": int(float(row.get("Impressions", row.get("impressions", 0)))),
+                "pin_clicks": int(float(row.get("Pin clicks", row.get("pin_clicks", 0)))),
+                "outbound_clicks": int(float(row.get("Outbound clicks", row.get("outbound_clicks", 0)))),
+                "saves": int(float(row.get("Saves", row.get("saves", 0))))
+            })
+
+    if records:
+        data = load_analytics_data()
+        data["historical_daily"] = sorted(records, key=lambda x: x["date"])
+        data["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        save_analytics_data(data)
+        print(f"✓ Successfully imported {len(records)} daily records from {csv_path}!")
+        return True
+    else:
+        print(f"❌ No valid records found in {csv_path}")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="Simple Space Haven Analytics & Reporting Engine")
     parser.add_argument("--sync", action="store_true", help="Sync latest analytics data to docs/ for GitHub Pages")
     parser.add_argument("--email", action="store_true", help="Generate and send the weekly email report via SMTP")
     parser.add_argument("--preview", action="store_true", help="Generate local HTML preview of the email")
     parser.add_argument("--dry-run", action="store_true", help="Run full pipeline without making network SMTP calls")
+    parser.add_argument("--import-csv", type=str, help="Import a downloaded Pinterest Analytics CSV export")
     parser.add_argument("--dashboard-url", default="https://simplespacehaven.github.io/simpleSpace/", help="URL to the live dashboard")
 
     args = parser.parse_args()
+
+    if args.import_csv:
+        import_pinterest_csv(args.import_csv)
+        return
 
     # If no flags provided, default to sync and preview
     if not (args.sync or args.email or args.preview or args.dry_run):
