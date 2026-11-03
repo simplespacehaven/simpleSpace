@@ -324,15 +324,45 @@ def get_fallback_products(search_keyword, count=4):
 def hunt_bestsellers_for_horse(pin_id, title, board):
     """
     Takes any winning horse pin, dynamically extracts its shopping keyword,
-    pulls 4 top-selling real Amazon India products, and produces Pinterest Bulk Schedule CSV.
+    pulls 4 top-selling real Amazon India products with verified HTTP 200 images,
+    and produces Pinterest Bulk Schedule CSV.
     """
     keyword = clean_product_keyword(title)
     print(f"🎯 Dynamic Keyword for Horse #{pin_id}: '{keyword}'")
 
-    # 1. Attempt Live Amazon India Extraction
-    products = fetch_live_amazon_products(keyword, count=4)
+    products = []
+    
+    # 1. First check pre-verified database for 100% verified HTTP 200 images & relevancy
+    verified_file = BASE_DIR / "verified_amazon_products.json"
+    if verified_file.exists():
+        try:
+            with open(verified_file, "r", encoding="utf-8") as f:
+                v_data = json.load(f)
+                horse_data = v_data.get(str(pin_id))
+                if horse_data and horse_data.get("products"):
+                    for p in horse_data["products"]:
+                        products.append({
+                            **p,
+                            "source": "verified_live_catalog"
+                        })
+        except Exception as e:
+            print(f"Verified cache notice: {e}")
 
-    # 2. Resilient Fallback if needed
+    # 2. If not found in pre-verified pool, attempt live Amazon search with HTTP 200 validation
+    if len(products) < 4:
+        live_products = fetch_live_amazon_products(keyword, count=4)
+        for lp in live_products:
+            # Verify image actually returns HTTP 200
+            try:
+                chk = requests.head(lp["hd_image"], headers=HEADERS, timeout=4)
+                if chk.status_code == 200:
+                    products.append(lp)
+            except Exception:
+                pass
+            if len(products) >= 4:
+                break
+
+    # 3. Final safety fallback from category pool if still needed
     if len(products) < 4:
         needed = 4 - len(products)
         fallbacks = get_fallback_products(keyword, count=needed)
@@ -344,7 +374,7 @@ def hunt_bestsellers_for_horse(pin_id, title, board):
 
     products = products[:4]
 
-    # 3. Build Staggered Drip Schedule
+    # 4. Build Staggered Drip Schedule & Pinterest Bulk CSV
     now = datetime.datetime.now()
     batch_dir = OUTPUT_DIR / f"horse_{pin_id}"
     batch_dir.mkdir(parents=True, exist_ok=True)
@@ -367,7 +397,6 @@ def hunt_bestsellers_for_horse(pin_id, title, board):
             "board": board
         })
 
-    # 4. Write Pinterest CSV Bulk Upload Format
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["Title", "Media URL", "Pinterest board", "Thumbnail", "Description", "Link", "Publish date", "Keywords"])
