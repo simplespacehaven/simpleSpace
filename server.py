@@ -321,10 +321,11 @@ def api_audit():
 
 @app.route("/api/winners", methods=["GET"])
 def api_winners():
-    """Identifies viral horse pins and produces 3 actionable multiplier angles for each."""
+    """Identifies viral horse pins and matches dynamic Amazon search categories."""
     data = load_cached_data()
     pins = data.get("top_performing_pins", [])
     winners = []
+    from amazon_trend_hunter import clean_product_keyword
     for p in pins:
         impr = p.get("impressions", 0)
         clicks = p.get("pin_clicks", 0)
@@ -332,11 +333,13 @@ def api_winners():
             title = p.get("title", "")
             pid = p.get("pin_id") or (p.get("id", "").replace("pin_", ""))
             batch_dir = OUTPUT_DIR / "winner_batches" / f"horse_{pid}"
-            has_batch = (batch_dir / "variation_1_deal_hunter.jpg").exists() and (batch_dir / "pinterest_winning_batch_schedule.csv").exists()
+            has_batch = (batch_dir / "pinterest_amazon_bestsellers_schedule.csv").exists()
+            dyn_keyword = clean_product_keyword(title)
             winners.append({
                 "rank": len(winners) + 1,
                 "pin_id": pid,
                 "title": title,
+                "clean_keyword": dyn_keyword,
                 "board": p.get("board"),
                 "image_url": p.get("image_url"),
                 "destination_url": p.get("destination_url") or "",
@@ -347,19 +350,19 @@ def api_winners():
                 "suggested_link": suggest_product_link(title),
                 "angles": [
                     {
-                        "type": "Price & Prime Badge",
-                        "headline": "Under ₹999 Verified Deal",
-                        "desc": "High-contrast price badge on image to attract high-intent buyers."
+                        "type": "Amazon Bestseller",
+                        "headline": f"Top Rated {dyn_keyword}",
+                        "desc": "Real Amazon Bestseller with 4★+ rating, high review velocity, and Prime delivery."
                     },
                     {
-                        "type": "Renter Friendly Hack",
-                        "headline": "No-Drill Setup for Compact Balconies",
-                        "desc": "Emphasizes zero wall damage, portability, and instant aesthetic upgrade."
+                        "type": "Frequently Bought Together",
+                        "headline": "Complementary Solution",
+                        "desc": "Matching product from this exact category to capture multi-item basket conversion."
                     },
                     {
-                        "type": "Curated 3-Item Listicle",
-                        "headline": "3 Small Space Balcony Must-Haves",
-                        "desc": "Checklist layout with highest organic save-rate on Pinterest."
+                        "type": "Budget Impulse Gem",
+                        "headline": "Under ₹999 Find",
+                        "desc": "High-conversion affordable essential with highest organic click-through rate."
                     }
                 ]
             })
@@ -368,14 +371,11 @@ def api_winners():
 
 @app.route("/api/winners/generate", methods=["GET", "POST"])
 def api_generate_winner_pack():
-    """Generates the 3 A/B test variations with images and schedule CSV for a winning horse."""
+    """Dynamically searches Amazon India for real bestsellers matching this winning horse."""
     pin_id = request.args.get("pin_id")
-    force = request.args.get("force", "").lower() in ("true", "1")
     if request.method == "POST":
         body = request.get_json(silent=True) or {}
         pin_id = body.get("pin_id") or pin_id
-        if "force" in body:
-            force = bool(body.get("force"))
 
     if not pin_id:
         return jsonify({"status": "error", "message": "pin_id is required"}), 400
@@ -389,62 +389,12 @@ def api_generate_winner_pack():
             target_pin = p
             break
 
-    from winner_multiplier import generate_winning_horse_pack
+    from amazon_trend_hunter import hunt_bestsellers_for_horse
     title = target_pin.get("title", "Smart Space Decor") if target_pin else "Smart Balcony Decor"
     board = target_pin.get("board", "Balcony Essentials & Decor for Small Spaces") if target_pin else "Balcony Essentials & Decor for Small Spaces"
-    img_url = target_pin.get("image_url") if target_pin else "https://i.pinimg.com/1200x/75/95/01/759501f69e3152abf9b1be939c12eed1.jpg"
-    dest_link = (target_pin.get("destination_url") if target_pin else None) or suggest_product_link(title)
-
-    # If already generated and not forced, return cached batch info immediately
-    batch_dir = OUTPUT_DIR / "winner_batches" / f"horse_{pin_id}"
-    v1 = batch_dir / "variation_1_deal_hunter.jpg"
-    v2 = batch_dir / "variation_2_renter_hack.jpg"
-    v3 = batch_dir / "variation_3_listicle.jpg"
-    csv_f = batch_dir / "pinterest_winning_batch_schedule.csv"
-    if not force and v1.exists() and v2.exists() and v3.exists() and csv_f.exists():
-        now = datetime.datetime.now()
-        dates = [
-            (now + datetime.timedelta(days=1, hours=9, minutes=30)).strftime("%Y-%m-%d %H:%M:00"),
-            (now + datetime.timedelta(days=2, hours=13, minutes=30)).strftime("%Y-%m-%d %H:%M:00"),
-            (now + datetime.timedelta(days=3, hours=18, minutes=30)).strftime("%Y-%m-%d %H:%M:00")
-        ]
-        return jsonify({
-            "status": "success",
-            "pin_id": pin_id,
-            "title": title,
-            "board": board,
-            "affiliate_link": dest_link,
-            "csv_download_url": f"/output/winner_batches/horse_{pin_id}/pinterest_winning_batch_schedule.csv",
-            "variations": [
-                {
-                    "angle": "Deal Hunter (Price & Prime)",
-                    "title": f"Amazon Deal: {title} (Verified Prime)",
-                    "desc": f"Verified Amazon Deal on {title}. Best small space solution with Prime delivery. Tap link to check price and discount on Amazon! #amazonfinds #deals",
-                    "filename": "variation_1_deal_hunter.jpg",
-                    "web_url": f"/output/winner_batches/horse_{pin_id}/variation_1_deal_hunter.jpg",
-                    "date": dates[0]
-                },
-                {
-                    "angle": "Renter Hack (No-Drill Setup)",
-                    "title": f"Renter-Friendly Hack: {title} (Zero Damage)",
-                    "desc": f"Apartment & Renter Safe: {title}. 100% reversible, no damage, quick setup for small spaces. Tap link for direct details! #renterfriendly #apartmenthacks",
-                    "filename": "variation_2_renter_hack.jpg",
-                    "web_url": f"/output/winner_batches/horse_{pin_id}/variation_2_renter_hack.jpg",
-                    "date": dates[1]
-                },
-                {
-                    "angle": "Curated 3-Item Listicle",
-                    "title": f"3 Small Space Must-Haves: {title} & More",
-                    "desc": f"3 smart upgrades that instantly double small space storage and aesthetic. Save this pin for home decor inspiration! Direct link in pin. #homemakeover #minimalspace",
-                    "filename": "variation_3_listicle.jpg",
-                    "web_url": f"/output/winner_batches/horse_{pin_id}/variation_3_listicle.jpg",
-                    "date": dates[2]
-                }
-            ]
-        })
 
     try:
-        pack = generate_winning_horse_pack(pin_id, title, board, img_url, dest_link)
+        pack = hunt_bestsellers_for_horse(pin_id, title, board)
         return jsonify(pack)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
