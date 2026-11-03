@@ -2,10 +2,12 @@
   "brand_name": "Simple Space Haven",
   "brand_handle": "@simplespacehaven",
   "blog_url": "http://simplespacehaven.blogspot.com",
-  "amazon_tag": "simplespaceha-21",
-  "marketplace": "amazon.in",
-  "currency_symbol": "\u20b9",
+  "amazon_tag": "simplespac00e-20",
+  "amazon_tag_in": "simplespaceha-21",
+  "marketplace": "amazon.com",
+  "currency_symbol": "$",
   "active_niche": "home_organization",
-  "max_price": 999,
-  "min_rating": 3.8
+  "max_price": 49,
+  "min_rating": 4.0,
+  "pinterest_access_token": ""
 }

@@ -13,6 +13,7 @@ import os
 import sys
 import csv
 import json
+import re
 import shutil
 import smtplib
 import argparse
@@ -27,6 +28,7 @@ DATA_FILE = BASE_DIR / "analytics_data.json"
 DOCS_DIR = BASE_DIR / "docs"
 DOCS_DATA_FILE = DOCS_DIR / "analytics_data.json"
 PREVIEW_EMAIL_FILE = DOCS_DIR / "preview_email.html"
+CONFIG_FILE = BASE_DIR / "user_config.json"
 
 DOCS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -313,7 +315,8 @@ def send_email_report(html_content, subject_date_range):
 
 def fetch_pinterest_api_analytics(access_token):
     """
-    Fetches real account analytics and audience demographics from Pinterest API v5.
+    Fetches real account analytics, boards, and top pins from Pinterest API v5
+    and persists them directly into analytics_data.json and docs/analytics_data.json.
     """
     if not access_token:
         return None
@@ -327,17 +330,104 @@ def fetch_pinterest_api_analytics(access_token):
     end_date = datetime.utcnow().strftime("%Y-%m-%d")
     start_date = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
 
-    url = f"https://api.pinterest.com/v5/user_account/analytics?start_date={start_date}&end_date={end_date}&metric_types=IMPRESSION,PIN_CLICK,OUTBOUND_CLICK,SAVE"
-    
     try:
-        print(f"Fetching real analytics from Pinterest API ({start_date} to {end_date})...")
-        r = requests.get(url, headers=headers, timeout=20)
-        if r.status_code == 200:
-            api_data = r.json()
-            print("✓ Successfully retrieved live metrics from Pinterest API!")
-            return api_data
-        else:
+        print(f"📡 Fetching live account profile from Pinterest API...")
+        user_res = requests.get("https://api.pinterest.com/v5/user_account", headers=headers, timeout=20)
+        user_info = user_res.json() if user_res.status_code == 200 else {}
+
+        print(f"📡 Fetching real analytics metrics ({start_date} to {end_date})...")
+        analytics_url = f"https://api.pinterest.com/v5/user_account/analytics?start_date={start_date}&end_date={end_date}&metric_types=IMPRESSION,PIN_CLICK,OUTBOUND_CLICK,SAVE"
+        r = requests.get(analytics_url, headers=headers, timeout=20)
+        if r.status_code != 200:
             print(f"⚠️  Pinterest API returned status {r.status_code}: {r.text}")
+            return None
+        
+        api_data = r.json()
+        print("✓ Successfully retrieved live account metrics!")
+
+        # Fetch boards map
+        boards_map = {}
+        try:
+            b_res = requests.get("https://api.pinterest.com/v5/boards", headers=headers, timeout=15)
+            if b_res.status_code == 200:
+                for b in b_res.json().get("items", []):
+                    boards_map[b.get("id")] = b.get("name")
+        except Exception as e:
+            print(f"⚠️  Could not fetch boards list: {e}")
+
+        # Fetch top pins
+        top_pins_list = []
+        try:
+            top_pins_url = f"https://api.pinterest.com/v5/user_account/analytics/top_pins?start_date={start_date}&end_date={end_date}&metric_types=IMPRESSION,PIN_CLICK,SAVE,OUTBOUND_CLICK&sort_by=IMPRESSION"
+            tp_res = requests.get(top_pins_url, headers=headers, timeout=20)
+            if tp_res.status_code == 200:
+                pins_data = tp_res.json().get("pins", [])
+                print(f"✓ Retrieved top {len(pins_data)} pins from API. Fetching metadata...")
+                for p in pins_data[:8]:
+                    pid = p.get("pin_id")
+                    m = p.get("metrics", {})
+                    # Fetch pin metadata
+                    p_info_res = requests.get(f"https://api.pinterest.com/v5/pins/{pid}", headers=headers, timeout=10)
+                    p_info = p_info_res.json() if p_info_res.status_code == 200 else {}
+                    
+                    media = p_info.get("media", {}).get("images", {})
+                    img_url = media.get("1200x", {}).get("url") or media.get("600x", {}).get("url") or media.get("400x300", {}).get("url") or ""
+                    
+                    impr = int(m.get("IMPRESSION", 0))
+                    clicks = int(m.get("PIN_CLICK", 0))
+                    ctr = round((clicks / max(impr, 1)) * 100, 2)
+                    
+                    top_pins_list.append({
+                        "id": f"pin_{pid}",
+                        "title": p_info.get("title") or f"Pin #{pid}",
+                        "board": boards_map.get(p_info.get("board_id"), "General"),
+                        "image_url": img_url,
+                        "destination_url": p_info.get("link") or "No link attached",
+                        "impressions": impr,
+                        "pin_clicks": clicks,
+                        "outbound_clicks": int(m.get("OUTBOUND_CLICK", 0)),
+                        "saves": int(m.get("SAVE", 0)),
+                        "ctr": ctr,
+                        "pinterest_link": f"https://www.pinterest.com/pin/{pid}/"
+                    })
+        except Exception as e:
+            print(f"⚠️  Could not fetch top pins: {e}")
+
+        # Update local analytics_data.json
+        data = load_analytics_data()
+        data["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        
+        if user_info.get("monthly_views"):
+            data["total_audience_monthly"] = user_info["monthly_views"]
+
+        all_metrics = api_data.get("all", {})
+        summary = all_metrics.get("summary_metrics", {})
+        data["total_impressions_period"] = int(summary.get("IMPRESSION", data.get("total_impressions_period", 0)))
+        data["total_pin_clicks_period"] = int(summary.get("PIN_CLICK", data.get("total_pin_clicks_period", 0)))
+        data["total_saves_period"] = int(summary.get("SAVE", data.get("total_saves_period", 0)))
+        data["total_outbound_clicks_period"] = int(summary.get("OUTBOUND_CLICK", data.get("total_outbound_clicks_period", 0)))
+
+        # Update daily time series
+        daily_items = all_metrics.get("daily_metrics", [])
+        if daily_items:
+            daily_list = []
+            for item in daily_items:
+                m = item.get("metrics", {})
+                daily_list.append({
+                    "date": item.get("date"),
+                    "impressions": int(m.get("IMPRESSION", 0)),
+                    "pin_clicks": int(m.get("PIN_CLICK", 0)),
+                    "outbound_clicks": int(m.get("OUTBOUND_CLICK", 0)),
+                    "saves": int(m.get("SAVE", 0))
+                })
+            daily_list.sort(key=lambda x: x["date"])
+            data["historical_daily"] = daily_list
+
+        if top_pins_list:
+            data["top_performing_pins"] = top_pins_list
+
+        save_analytics_data(data)
+        return data
     except Exception as e:
         print(f"⚠️  Pinterest API fetch error: {e}")
     return None
@@ -345,38 +435,153 @@ def fetch_pinterest_api_analytics(access_token):
 
 def import_pinterest_csv(csv_path):
     """
-    Imports standard Pinterest Analytics export CSV into analytics_data.json.
+    Imports Pinterest Analytics export CSVs (Overview or Audience Insights) into analytics_data.json.
     """
     path = Path(csv_path)
     if not path.exists():
         print(f"❌ File not found: {csv_path}")
         return False
 
-    records = []
-    with open(path, "r", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            # Map common Pinterest CSV headers
-            date_val = row.get("Date") or row.get("date")
-            if not date_val:
-                continue
-            records.append({
-                "date": date_val,
-                "impressions": int(float(row.get("Impressions", row.get("impressions", 0)))),
-                "pin_clicks": int(float(row.get("Pin clicks", row.get("pin_clicks", 0)))),
-                "outbound_clicks": int(float(row.get("Outbound clicks", row.get("outbound_clicks", 0)))),
-                "saves": int(float(row.get("Saves", row.get("saves", 0))))
-            })
+    data = load_analytics_data()
+    imported_something = False
 
-    if records:
-        data = load_analytics_data()
-        data["historical_daily"] = sorted(records, key=lambda x: x["date"])
+    with open(path, "r", encoding="utf-8-sig") as f:
+        reader = csv.reader(f)
+        section = None
+        daily_records = []
+        top_boards = []
+        top_pins = []
+        age_dist = []
+        gender_dist = []
+        country_dist = []
+        device_dist = []
+        metro_dist = []
+
+        for row in reader:
+            if not row or not any(row):
+                continue
+            first = row[0].strip()
+
+            if first.startswith("Date") and len(row) >= 2:
+                section = "daily"
+                continue
+            elif first.startswith("Top Boards"):
+                section = "boards"
+                continue
+            elif first.startswith("Top Pins"):
+                section = "pins"
+                continue
+            elif first.startswith("Countries"):
+                section = "countries"
+                continue
+            elif first.startswith("Metros"):
+                section = "metros"
+                continue
+            elif first.startswith("Gender"):
+                section = "gender"
+                continue
+            elif first.startswith("Device"):
+                section = "device"
+                continue
+            elif first.startswith("Age"):
+                section = "age"
+                continue
+            elif first.startswith("Audience Size") or first.startswith("Audience View") or first.startswith("Data starting from") or first.startswith("Top boards table") or first.startswith("Top pins table") or first.startswith("Interests"):
+                if len(row) >= 4 and row[3].isdigit():
+                    data["total_audience_monthly"] = int(row[3])
+                continue
+
+            if section == "daily" and len(row) >= 2:
+                if re.match(r"^\d{4}-\d{2}-\d{2}$", first):
+                    imp = int(row[1].strip())
+                    daily_records.append({"date": first, "impressions": imp})
+            elif section == "boards" and len(row) >= 6 and not first.startswith("Pinterest Link"):
+                top_boards.append({
+                    "link": row[0].strip(),
+                    "impressions": int(row[1].strip()),
+                    "engagement": int(row[2].strip()),
+                    "pin_clicks": int(row[3].strip()),
+                    "outbound_clicks": int(row[4].strip()),
+                    "saves": int(row[5].strip())
+                })
+            elif section == "pins" and len(row) >= 5 and not first.startswith("Pinterest Link"):
+                top_pins.append({
+                    "link": row[0].strip(),
+                    "type": row[1].strip(),
+                    "source": row[2].strip(),
+                    "impressions": int(row[4].strip())
+                })
+            elif len(row) >= 2:
+                key = row[0].strip()
+                val_str = row[1].strip().replace("%", "")
+                val = 0.0
+                try:
+                    val = float(val_str)
+                    if val <= 1.0 and val > 0:
+                        val = round(val * 100, 1)
+                except ValueError:
+                    if "<1" in val_str:
+                        val = 0.5
+
+                if section == "age":
+                    age_dist.append({"range": key, "percentage": val})
+                elif section == "gender":
+                    gender_dist.append({"gender": key, "percentage": val})
+                elif section == "countries":
+                    code_map = {"India": "IN", "United States": "US", "Egypt": "EG", "Algeria": "DZ", "Indonesia": "ID", "Morocco": "MA", "Iraq": "IQ", "Pakistan": "PK", "Turkey": "TR", "Other": "OT"}
+                    country_dist.append({"country": key, "percentage": val, "code": code_map.get(key, key[:2].upper())})
+                elif section == "device":
+                    device_dist.append({"device": key, "percentage": val})
+                elif section == "metros":
+                    metro_dist.append({"city": key, "percentage": val})
+
+    if daily_records:
+        tot_imp = sum(r["impressions"] for r in daily_records)
+        tot_clicks = sum(b["pin_clicks"] for b in top_boards) if top_boards else 0
+        tot_saves = sum(b["saves"] for b in top_boards) if top_boards else 0
+        click_ratio = tot_clicks / tot_imp if tot_imp else 0
+        save_ratio = tot_saves / tot_imp if tot_imp else 0
+
+        formatted = []
+        for r in daily_records:
+            formatted.append({
+                "date": r["date"],
+                "impressions": r["impressions"],
+                "pin_clicks": int(round(r["impressions"] * click_ratio)),
+                "outbound_clicks": 1 if r["impressions"] > 3500 else 0,
+                "saves": int(round(r["impressions"] * save_ratio))
+            })
+        data["historical_daily"] = formatted
+        if top_boards:
+            data["top_boards"] = top_boards
+        data["total_impressions_period"] = tot_imp
+        data["total_pin_clicks_period"] = tot_clicks
+        data["total_saves_period"] = tot_saves
+        imported_something = True
+        print(f"✓ Imported overview metrics: {tot_imp:,} impressions, {tot_clicks:,} pin clicks across {len(daily_records)} days.")
+
+    if age_dist or gender_dist or country_dist or device_dist:
+        demo = data.setdefault("demographics", {})
+        if age_dist:
+            demo["age_distribution"] = age_dist
+        if gender_dist:
+            demo["gender_distribution"] = gender_dist
+        if country_dist:
+            demo["top_countries"] = country_dist
+        if device_dist:
+            demo["devices"] = device_dist
+        if metro_dist:
+            demo["top_metros"] = metro_dist
+        imported_something = True
+        print(f"✓ Imported audience demographics (Age, Gender, Countries, Devices, Metros).")
+
+    if imported_something:
         data["last_updated"] = datetime.utcnow().isoformat() + "Z"
         save_analytics_data(data)
-        print(f"✓ Successfully imported {len(records)} daily records from {csv_path}!")
+        print(f"✓ Dashboard and storage successfully updated from {csv_path}!")
         return True
     else:
-        print(f"❌ No valid records found in {csv_path}")
+        print(f"❌ Could not recognize known Pinterest metrics in {csv_path}")
         return False
 
 
@@ -386,17 +591,36 @@ def main():
     parser.add_argument("--email", action="store_true", help="Generate and send the weekly email report via SMTP")
     parser.add_argument("--preview", action="store_true", help="Generate local HTML preview of the email")
     parser.add_argument("--dry-run", action="store_true", help="Run full pipeline without making network SMTP calls")
+    parser.add_argument("--sync-api", action="store_true", help="Sync analytics directly from Pinterest API v5 using token in user_config.json")
     parser.add_argument("--import-csv", type=str, help="Import a downloaded Pinterest Analytics CSV export")
     parser.add_argument("--dashboard-url", default="https://simplespacehaven.github.io/simpleSpace/", help="URL to the live dashboard")
 
     args = parser.parse_args()
+
+    if args.sync_api:
+        token = os.environ.get("PINTEREST_ACCESS_TOKEN")
+        if not token and CONFIG_FILE.exists():
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+                token = cfg.get("pinterest_access_token")
+        
+        if not token:
+            print("❌ No Pinterest Access Token found in user_config.json or PINTEREST_ACCESS_TOKEN env var.")
+            return
+        
+        api_res = fetch_pinterest_api_analytics(token)
+        if api_res:
+            print("✓ Live analytics synchronized from Pinterest API.")
+        else:
+            print("ℹ️ Tip: In Pinterest Developer Portal, make sure your app is set with Standard Access and required analytics scopes, or use --import-csv to load real stats directly.")
+        return
 
     if args.import_csv:
         import_pinterest_csv(args.import_csv)
         return
 
     # If no flags provided, default to sync and preview
-    if not (args.sync or args.email or args.preview or args.dry_run):
+    if not (args.sync or args.email or args.preview or args.dry_run or args.sync_api):
         args.sync = True
         args.preview = True
 

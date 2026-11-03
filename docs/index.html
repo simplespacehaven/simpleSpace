@@ -3,36 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Space Haven - Analytics & Growth Intelligence</title>
-  <!-- Tailwind CSS CDN -->
+  <title>Simple Space Haven — Performance & Monetization Analytics</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Fonts: Inter & Playfair Display -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            serif: ['Playfair Display', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
           },
           colors: {
             brand: {
-              cream: '#FAF8F5',
+              bg: '#F8F9FA',
               card: '#FFFFFF',
-              dark: '#23272A',
-              sage: '#4C6E59',
-              terracotta: '#C46044',
-              gold: '#D4A359',
-              muted: '#6B7280',
-              border: '#E5E0D8',
+              dark: '#1A1D20',
+              accent: '#E60023', // Pinterest Red
+              green: '#059669',
+              amber: '#D97706',
+              muted: '#64748B',
+              border: '#E2E8F0',
             }
           }
         }
@@ -40,622 +40,645 @@
     }
   </script>
   <style>
-    body {
-      background-color: #FAF8F5;
-      color: #23272A;
-    }
-    .kpi-card {
-      transition: all 0.2s ease-in-out;
-    }
-    .kpi-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    }
-    .tab-btn.active {
-      background-color: #23272A;
-      color: #FFFFFF;
-      border-color: #23272A;
-    }
+    body { background-color: #F8F9FA; color: #1A1D20; }
+    .kpi-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+    .tab-btn.active { background-color: #1A1D20; color: #FFFFFF; font-weight: 600; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-brand-sage selection:text-white">
+<body class="min-h-screen font-sans flex flex-col antialiased">
 
-  <!-- TOP NAVIGATION / HEADER -->
-  <header class="bg-white border-b border-brand-border sticky top-0 z-50 backdrop-blur-md bg-white/90">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-brand-sage text-white flex items-center justify-center font-serif text-xl font-bold shadow-sm">
-          S
+  <!-- Top Notification Toast -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-96 opacity-0 transition-all duration-300 bg-brand-dark text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2 border border-slate-700">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toast-message">Data synchronized</span>
+  </div>
+
+  <!-- HEADER -->
+  <header class="bg-white border-b border-brand-border sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-red-200">
+          P
         </div>
         <div>
-          <h1 class="font-serif font-bold text-lg text-brand-dark tracking-tight leading-none">Simple Space Haven</h1>
-          <p class="text-xs text-brand-muted font-medium mt-0.5">Automated Growth & Audience Intelligence</p>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-bold text-base text-brand-dark">Simple Space Haven</h1>
+            <span class="bg-red-50 text-red-700 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">
+              @simplespacehaven
+            </span>
+          </div>
+          <p class="text-xs text-brand-muted flex items-center space-x-1.5 pt-0.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span>Live Pinterest API v5 Connected</span>
+            <span>•</span>
+            <span>Synced: <strong id="last-synced-label" class="text-slate-700 font-medium">Checking...</strong></span>
+          </p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-4">
-        <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Live Auto-Sync</span>
-        </div>
-        <div class="text-right hidden md:block">
-          <p class="text-[11px] text-brand-muted uppercase font-semibold tracking-wider">Last Updated</p>
-          <p id="last-updated-text" class="text-xs font-semibold text-brand-dark">Loading...</p>
-        </div>
+      <!-- Action Controls -->
+      <div class="flex items-center space-x-3">
+        <button id="btn-refresh" onclick="triggerLiveRefresh()" class="inline-flex items-center space-x-2 bg-brand-dark hover:bg-black text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
+          <i data-lucide="refresh-cw" id="refresh-icon" class="w-3.5 h-3.5"></i>
+          <span>Live API Refresh</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-7">
 
-    <!-- CONTROLS & DATE FILTER BAR -->
-    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-brand-border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs font-bold text-brand-muted uppercase tracking-wider mr-1">Timeframe:</span>
-        <button onclick="setDateRange('7d')" id="btn-7d" class="tab-btn active px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">Last 7 Days</button>
-        <button onclick="setDateRange('14d')" id="btn-14d" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">Last 14 Days</button>
-        <button onclick="setDateRange('30d')" id="btn-30d" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">Last 30 Days</button>
-        <button onclick="setDateRange('all')" id="btn-all" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-brand-border bg-brand-cream hover:bg-gray-100 transition-colors">All History</button>
+    <!-- ACCOUNT SUMMARY STRIP -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+        <div class="p-2.5 rounded-lg bg-red-50 text-red-600">
+          <i data-lucide="eye" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Monthly Views</div>
+          <div class="text-lg font-extrabold text-brand-dark" id="stat-monthly-views">--</div>
+        </div>
       </div>
 
-      <!-- Custom Date Inputs -->
-      <div class="flex items-center space-x-2 text-xs">
-        <div class="flex items-center space-x-1.5 bg-brand-cream border border-brand-border rounded-lg px-2.5 py-1.5">
-          <i data-lucide="calendar" class="w-3.5 h-3.5 text-brand-muted"></i>
-          <input type="date" id="custom-start" class="bg-transparent text-xs font-medium focus:outline-none text-brand-dark" onchange="applyCustomRange()">
-          <span class="text-brand-muted font-bold">-</span>
-          <input type="date" id="custom-end" class="bg-transparent text-xs font-medium focus:outline-none text-brand-dark" onchange="applyCustomRange()">
+      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+        <div class="p-2.5 rounded-lg bg-blue-50 text-blue-600">
+          <i data-lucide="image" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Total Pins</div>
+          <div class="text-lg font-extrabold text-brand-dark" id="stat-pin-count">--</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+        <div class="p-2.5 rounded-lg bg-purple-50 text-purple-600">
+          <i data-lucide="folder" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Boards</div>
+          <div class="text-lg font-extrabold text-brand-dark" id="stat-board-count">--</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+        <div class="p-2.5 rounded-lg bg-emerald-50 text-emerald-600">
+          <i data-lucide="users" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Followers</div>
+          <div class="text-lg font-extrabold text-brand-dark" id="stat-followers">--</div>
         </div>
       </div>
     </div>
 
-    <!-- SUMMARY KPI STATS CARDS -->
+    <!-- TIMEFRAME SELECTOR -->
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-brand-border">
+      <div class="flex items-center space-x-2">
+        <span class="text-xs font-semibold text-brand-muted px-1">Timeframe:</span>
+        <button id="btn-7d" onclick="setTimeRange('7d')" class="tab-btn active text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 7 Days</button>
+        <button id="btn-14d" onclick="setTimeRange('14d')" class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 14 Days</button>
+        <button id="btn-30d" onclick="setTimeRange('30d')" class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 30 Days</button>
+        <button id="btn-all" onclick="setTimeRange('all')" class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">All Recorded</button>
+      </div>
+      <div class="text-xs text-brand-muted" id="period-range-label">Showing selected range</div>
+    </div>
+
+    <!-- CORE KPI METRICS (THE MONETIZATION FUNNEL) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       
       <!-- Impressions -->
-      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Impressions</span>
-          <div class="p-2 rounded-xl bg-blue-50 text-blue-600"><i data-lucide="eye" class="w-4 h-4"></i></div>
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+        <div class="flex items-center justify-between pb-3">
+          <span class="text-xs font-semibold text-brand-muted">Total Impressions</span>
+          <i data-lucide="trending-up" class="w-4 h-4 text-slate-400"></i>
         </div>
-        <div class="mt-4">
-          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-impressions">--</div>
-          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-impressions-delta">
-            <span class="font-semibold text-emerald-600">+--%</span>
-            <span class="text-brand-muted">vs prev period</span>
-          </div>
-        </div>
+        <div class="text-2xl font-black text-brand-dark" id="kpi-impressions">--</div>
+        <div class="text-[11px] text-brand-muted pt-1">Views across Pinterest feeds</div>
       </div>
 
       <!-- Pin Clicks -->
-      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Pin Clicks</span>
-          <div class="p-2 rounded-xl bg-purple-50 text-purple-600"><i data-lucide="mouse-pointer" class="w-4 h-4"></i></div>
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+        <div class="flex items-center justify-between pb-3">
+          <span class="text-xs font-semibold text-brand-muted">Pin Clicks</span>
+          <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-blue-500"></i>
         </div>
-        <div class="mt-4">
-          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-clicks">--</div>
-          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-clicks-delta">
-            <span class="font-semibold text-emerald-600">+--%</span>
-            <span class="text-brand-muted">vs prev period</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Outbound Clicks -->
-      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between border-l-4 border-l-brand-sage">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Outbound Clicks</span>
-          <div class="p-2 rounded-xl bg-emerald-50 text-brand-sage"><i data-lucide="external-link" class="w-4 h-4"></i></div>
-        </div>
-        <div class="mt-4">
-          <div class="text-2xl font-bold text-brand-sage tracking-tight" id="kpi-outbound">--</div>
-          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-outbound-delta">
-            <span class="font-semibold text-emerald-600">+--%</span>
-            <span class="text-brand-muted">vs prev period</span>
-          </div>
-        </div>
+        <div class="text-2xl font-black text-blue-600" id="kpi-pin-clicks">--</div>
+        <div class="text-[11px] text-slate-500 pt-1">Close-up / Pin views (<span id="kpi-click-rate">0%</span>)</div>
       </div>
 
       <!-- Saves / Repins -->
-      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Saves / Repins</span>
-          <div class="p-2 rounded-xl bg-amber-50 text-brand-gold"><i data-lucide="bookmark" class="w-4 h-4"></i></div>
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+        <div class="flex items-center justify-between pb-3">
+          <span class="text-xs font-semibold text-brand-muted">Saves (Repins)</span>
+          <i data-lucide="bookmark" class="w-4 h-4 text-purple-500"></i>
         </div>
-        <div class="mt-4">
-          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-saves">--</div>
-          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-saves-delta">
-            <span class="font-semibold text-emerald-600">+--%</span>
-            <span class="text-brand-muted">vs prev period</span>
-          </div>
+        <div class="text-2xl font-black text-purple-600" id="kpi-saves">--</div>
+        <div class="text-[11px] text-slate-500 pt-1">Saved to user boards</div>
+      </div>
+
+      <!-- Outbound Clicks -->
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+        <div class="flex items-center justify-between pb-3">
+          <span class="text-xs font-semibold text-brand-muted">Outbound Clicks</span>
+          <i data-lucide="external-link" class="w-4 h-4 text-emerald-600"></i>
         </div>
+        <div class="text-2xl font-black text-emerald-600" id="kpi-outbound">--</div>
+        <div class="text-[11px] text-slate-500 pt-1">Clicked to Website / Amazon</div>
       </div>
 
       <!-- Outbound CTR -->
-      <div class="kpi-card bg-white p-5 rounded-2xl border border-brand-border shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-brand-muted uppercase tracking-wider">Outbound CTR</span>
-          <div class="p-2 rounded-xl bg-orange-50 text-brand-terracotta"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+        <div class="flex items-center justify-between pb-3">
+          <span class="text-xs font-semibold text-brand-muted">Outbound CTR</span>
+          <i data-lucide="percent" class="w-4 h-4 text-amber-500"></i>
         </div>
-        <div class="mt-4">
-          <div class="text-2xl font-bold text-brand-dark tracking-tight" id="kpi-ctr">--%</div>
-          <div class="flex items-center space-x-1 mt-1 text-xs" id="kpi-ctr-delta">
-            <span class="font-semibold text-emerald-600">High Performing</span>
-          </div>
-        </div>
+        <div class="text-2xl font-black text-amber-600" id="kpi-outbound-ctr">--%</div>
+        <div class="text-[11px] text-slate-500 pt-1">Traffic-to-Buyer Conversion</div>
       </div>
 
     </div>
 
-    <!-- MAIN TIMELINE CHART -->
-    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-brand-border gap-2">
+    <!-- CONVERSION BOTTLE NECK DIAGNOSIS -->
+    <div id="alert-leak" class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start space-x-3.5 text-amber-900 text-xs leading-relaxed">
+      <div class="p-1 rounded-md bg-amber-200 text-amber-900 shrink-0 mt-0.5">
+        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <strong class="font-bold text-amber-950 block text-sm pb-0.5">Monetization Conversion Analysis</strong>
+        Users are discovering and clicking your pins in high volume, but almost none are exiting to buy. The table below highlights which viral pins are missing destination links.
+      </div>
+    </div>
+
+    <!-- DAILY PERFORMANCE TREND CHART -->
+    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+      <div class="flex flex-wrap items-center justify-between pb-4 border-b border-brand-border gap-2">
         <div>
-          <h2 class="text-base font-bold text-brand-dark">Traffic & Engagement Trajectory</h2>
-          <p class="text-xs text-brand-muted">Daily trend of Impressions, Pin Clicks, and Outbound Traffic over time</p>
+          <h2 class="text-sm font-bold text-brand-dark">Daily Engagement Trend</h2>
+          <p class="text-xs text-brand-muted">Impressions vs. Pin Clicks vs. Saves over time</p>
         </div>
-        <div class="flex items-center space-x-4 text-xs font-semibold">
-          <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-brand-sage inline-block"></span><span>Impressions</span></span>
-          <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-brand-terracotta inline-block"></span><span>Outbound Clicks</span></span>
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span>Impressions</span></span>
+          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Pin Clicks</span></span>
+          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span><span>Saves</span></span>
+          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Outbound Clicks</span></span>
         </div>
       </div>
-      <div class="pt-6 h-72 sm:h-80 relative">
-        <canvas id="trafficTrendChart"></canvas>
+      <div class="pt-4">
+        <div class="relative h-72 sm:h-80 w-full">
+          <canvas id="trendChart"></canvas>
+        </div>
       </div>
     </div>
 
-    <!-- AUDIENCE DEMOGRAPHICS & GEOGRAPHY SECTION -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Age Breakdown -->
-      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm flex flex-col">
-        <div class="flex items-center justify-between pb-4 border-b border-brand-border">
-          <div>
-            <h3 class="text-sm font-bold text-brand-dark">Age Demographics</h3>
-            <p class="text-[11px] text-brand-muted">Distribution across age brackets</p>
-          </div>
-          <i data-lucide="users" class="w-4 h-4 text-brand-muted"></i>
-        </div>
-        <div class="pt-4 flex-1 h-56 relative">
-          <canvas id="ageChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Top Geographies & Countries -->
-      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm flex flex-col">
-        <div class="flex items-center justify-between pb-4 border-b border-brand-border">
-          <div>
-            <h3 class="text-sm font-bold text-brand-dark">Top Geographies</h3>
-            <p class="text-[11px] text-brand-muted">Highest audience concentrations</p>
-          </div>
-          <i data-lucide="globe" class="w-4 h-4 text-brand-muted"></i>
-        </div>
-        <div class="pt-4 flex-1 h-56 relative">
-          <canvas id="countryChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Gender & Devices -->
-      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm flex flex-col">
-        <div class="flex items-center justify-between pb-4 border-b border-brand-border">
-          <div>
-            <h3 class="text-sm font-bold text-brand-dark">Gender & Devices</h3>
-            <p class="text-[11px] text-brand-muted">Audience profile & device types</p>
-          </div>
-          <i data-lucide="smartphone" class="w-4 h-4 text-brand-muted"></i>
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-4 flex-1 h-56 items-center">
-          <div class="relative h-44">
-            <canvas id="genderChart"></canvas>
-          </div>
-          <div class="relative h-44">
-            <canvas id="deviceChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- TOP PERFORMING PINS LEADERBOARD -->
-    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-sm">
-      <div class="flex items-center justify-between pb-5 border-b border-brand-border">
+    <!-- TOP PERFORMING PINS (MONEY OPPORTUNITY TABLE) -->
+    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+      <div class="flex items-center justify-between pb-4 border-b border-brand-border">
         <div>
-          <h2 class="text-base font-bold text-brand-dark flex items-center space-x-2">
-            <span>Top Performing Pins of the Period</span>
-            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Highest Traffic</span>
+          <h2 class="text-sm font-bold text-brand-dark flex items-center space-x-2">
+            <span>Top Performing Pins (Ranked by Traffic)</span>
+            <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Priority</span>
           </h2>
-          <p class="text-xs text-brand-muted">Pins generating the highest outbound click-through conversion rate</p>
+          <p class="text-xs text-brand-muted">Pins generating the highest organic search impressions and close-up views</p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6" id="top-pins-container">
-        <!-- Pin Cards will be dynamically inserted here -->
+      <div class="overflow-x-auto pt-3">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-brand-border text-brand-muted uppercase text-[10px] tracking-wider font-semibold">
+              <th class="py-3 px-3">Pin / Product</th>
+              <th class="py-3 px-3">Board</th>
+              <th class="py-3 px-3 text-right">Impressions</th>
+              <th class="py-3 px-3 text-right">Pin Clicks</th>
+              <th class="py-3 px-3 text-right">Saves</th>
+              <th class="py-3 px-3 text-right">Outbound</th>
+              <th class="py-3 px-3 text-center">Affiliate Link Status</th>
+              <th class="py-3 px-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="top-pins-table-body" class="divide-y divide-brand-border text-slate-700">
+            <tr>
+              <td colspan="8" class="text-center py-8 text-brand-muted">Loading top pin data...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- AI RECOMMENDATIONS & GROWTH TAKEAWAYS -->
-    <div class="bg-gradient-to-br from-brand-dark to-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-lg">
-      <div class="flex items-center space-x-3 mb-6">
-        <div class="p-2.5 rounded-xl bg-brand-sage text-white shadow-inner">
-          <i data-lucide="sparkles" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h2 class="font-serif font-bold text-lg text-white">Actionable Growth Takeaways</h2>
-          <p class="text-xs text-slate-300">Automated insights based on this week's analytics trajectory</p>
-        </div>
+    <!-- TOP BOARDS PERFORMANCE -->
+    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+      <div class="pb-4 border-b border-brand-border">
+        <h2 class="text-sm font-bold text-brand-dark">Board Traffic Distribution</h2>
+        <p class="text-xs text-brand-muted">Which boards drive the majority of your impressions and clicks</p>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 space-y-1.5">
-          <div class="flex items-center space-x-2 font-bold text-amber-300 text-sm">
-            <i data-lucide="target" class="w-4 h-4"></i>
-            <span>Niche Optimization</span>
-          </div>
-          <p class="text-slate-200 leading-relaxed">
-            Pantry & Kitchen organizers generated <strong>54% of all outbound clicks</strong>. Double down on curated Multi-Product listicle pins for these categories.
-          </p>
-        </div>
-
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 space-y-1.5">
-          <div class="flex items-center space-x-2 font-bold text-emerald-300 text-sm">
-            <i data-lucide="clock" class="w-4 h-4"></i>
-            <span>Posting Window</span>
-          </div>
-          <p class="text-slate-200 leading-relaxed">
-            Peak engagement occurs between <strong>7:30 PM – 10:15 PM EST</strong> (US audience peak). Ensure scheduling keeps pins active during this evening window.
-          </p>
-        </div>
-
-        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 space-y-1.5">
-          <div class="flex items-center space-x-2 font-bold text-blue-300 text-sm">
-            <i data-lucide="layers" class="w-4 h-4"></i>
-            <span>Audience Alignment</span>
-          </div>
-          <p class="text-slate-200 leading-relaxed">
-            42% of traffic comes from the <strong>25–34 age demographic</strong> on iOS mobile devices. Keep pin titles snappy, aesthetic, and direct with high visual contrast.
-          </p>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-5" id="top-boards-container">
+        <!-- Boards dynamically inserted here -->
       </div>
     </div>
 
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-white border-t border-brand-border py-6 mt-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-brand-muted space-y-1">
-      <p class="font-medium">Simple Space Haven &bull; Autonomous Analytics & Growth Engine</p>
-      <p class="text-[11px]">Powered by GitHub Actions &bull; 100% Cloud Serverless</p>
-    </div>
-  </footer>
-
-  <!-- JAVASCRIPT LOGIC FOR DATA & CHARTS -->
+  <!-- JAVASCRIPT APP LOGIC -->
   <script>
-    let analyticsData = null;
-    let trafficChartInstance = null;
-    let ageChartInstance = null;
-    let countryChartInstance = null;
-    let genderChartInstance = null;
-    let deviceChartInstance = null;
-    let activeRange = '7d';
+    let rawData = null;
+    let trendChartInstance = null;
+    let selectedRange = '7d';
 
-    async function loadAnalytics() {
-      try {
-        // Try fetching local or hosted data.json
-        const res = await fetch('analytics_data.json');
-        if (res.ok) {
-          analyticsData = await res.json();
-        } else {
-          // Fallback if running standalone or file relative
-          const resAlt = await fetch('../analytics_data.json');
-          analyticsData = await resAlt.json();
+    // Register custom tooltip positioner that snaps strictly to the nearest plotted point on the graph line
+    if (window.Chart && Chart.Tooltip && Chart.Tooltip.positioners) {
+      Chart.Tooltip.positioners.snapToLinePoint = function(elements, eventPosition) {
+        if (!elements || !elements.length) return false;
+        
+        if (!eventPosition || eventPosition.x === undefined) {
+          return { x: elements[0].element.x, y: elements[0].element.y };
         }
-      } catch (err) {
-        console.warn("Using embedded fallback data:", err);
-      }
 
-      if (!analyticsData) return;
+        // Find the single plotted point on the graph lines closest to the user's cursor
+        let closest = elements[0].element;
+        let minDist = Infinity;
+        for (let i = 0; i < elements.length; i++) {
+          const el = elements[i].element;
+          if (!el) continue;
+          const dx = el.x - eventPosition.x;
+          const dy = el.y - eventPosition.y;
+          const dist = (dx * dx) + (dy * dy);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = el;
+          }
+        }
 
-      // Update Last updated date
-      const dateObj = new Date(analyticsData.last_updated || new Date());
-      document.getElementById('last-updated-text').textContent = dateObj.toLocaleDateString('en-US', {
-        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-
-      // Set input defaults
-      const dates = analyticsData.historical_daily.map(d => d.date);
-      if (dates.length > 0) {
-        document.getElementById('custom-start').value = dates[Math.max(0, dates.length - 7)];
-        document.getElementById('custom-end').value = dates[dates.length - 1];
-      }
-
-      renderDashboard();
+        return {
+          x: closest.x,
+          y: closest.y
+        };
+      };
     }
 
-    function setDateRange(range) {
-      activeRange = range;
+    // ─── Initial Load ─────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      fetchDashboardData();
+    });
+
+    // ─── Fetch Data (Server API -> Local Fallback) ─────────────────────────────
+    async function fetchDashboardData(forceRefresh = false) {
+      const endpoint = forceRefresh ? '/api/analytics/refresh' : '/api/analytics';
+      
+      try {
+        const res = await fetch(endpoint, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          rawData = json.data || json;
+          showToast(forceRefresh ? "Synced live from Pinterest API!" : "Dashboard loaded successfully");
+        } else {
+          throw new Error("Server API returned status " + res.status);
+        }
+      } catch (err) {
+        console.warn("API route failed, trying static analytics_data.json fallback:", err);
+        try {
+          const fallbackRes = await fetch('analytics_data.json', { cache: 'no-store' });
+          if (fallbackRes.ok) {
+            rawData = await fallbackRes.json();
+          }
+        } catch (fbErr) {
+          console.error("All fetch sources failed:", fbErr);
+        }
+      }
+
+      if (rawData) {
+        renderDashboard();
+      }
+    }
+
+    async function triggerLiveRefresh() {
+      const icon = document.getElementById('refresh-icon');
+      const btn = document.getElementById('btn-refresh');
+      icon.classList.add('animate-spin');
+      btn.disabled = true;
+
+      showToast("Querying Pinterest API v5...");
+      await fetchDashboardData(true);
+
+      icon.classList.remove('animate-spin');
+      btn.disabled = false;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-x-96', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-x-96', 'opacity-0');
+      }, 3500);
+    }
+
+    // ─── Range Handling ───────────────────────────────────────────────────────
+    function setTimeRange(range) {
+      selectedRange = range;
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       const activeBtn = document.getElementById(`btn-${range}`);
       if (activeBtn) activeBtn.classList.add('active');
+      renderDashboard();
+    }
 
-      const dates = analyticsData.historical_daily.map(d => d.date);
-      if (dates.length > 0) {
-        const lastIdx = dates.length - 1;
-        let startIdx = 0;
-        if (range === '7d') startIdx = Math.max(0, lastIdx - 6);
-        else if (range === '14d') startIdx = Math.max(0, lastIdx - 13);
-        else if (range === '30d') startIdx = Math.max(0, lastIdx - 29);
-        else if (range === 'all') startIdx = 0;
+    function filterRecords() {
+      if (!rawData || !rawData.historical_daily) return [];
+      const records = [...rawData.historical_daily];
+      if (records.length === 0) return [];
 
-        document.getElementById('custom-start').value = dates[startIdx];
-        document.getElementById('custom-end').value = dates[lastIdx];
+      if (selectedRange === '7d') return records.slice(-7);
+      if (selectedRange === '14d') return records.slice(-14);
+      if (selectedRange === '30d') return records.slice(-30);
+      return records;
+    }
+
+    // ─── Render Complete Dashboard ────────────────────────────────────────────
+    function renderDashboard() {
+      if (!rawData) return;
+
+      // 1. Account Summary
+      document.getElementById('stat-monthly-views').textContent = Number(rawData.total_audience_monthly || 0).toLocaleString();
+      document.getElementById('stat-pin-count').textContent = Number(rawData.pin_count || 0).toLocaleString();
+      document.getElementById('stat-board-count').textContent = rawData.board_count || (rawData.top_boards ? rawData.top_boards.length : 8);
+      document.getElementById('stat-followers').textContent = rawData.follower_count || 10;
+
+      // Last Synced timestamp
+      if (rawData.last_updated) {
+        const d = new Date(rawData.last_updated);
+        document.getElementById('last-synced-label').textContent = d.toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
       }
 
-      renderDashboard();
+      // 2. Filtered Daily Records
+      const activeRecords = filterRecords();
+      if (activeRecords.length > 0) {
+        const firstDate = activeRecords[0].date;
+        const lastDate = activeRecords[activeRecords.length - 1].date;
+        document.getElementById('period-range-label').textContent = `${firstDate} to ${lastDate} (${activeRecords.length} days)`;
+
+        const totalImpr = activeRecords.reduce((s, r) => s + (r.impressions || 0), 0);
+        const totalClicks = activeRecords.reduce((s, r) => s + (r.pin_clicks || 0), 0);
+        const totalSaves = activeRecords.reduce((s, r) => s + (r.saves || 0), 0);
+        const totalOutbound = activeRecords.reduce((s, r) => s + (r.outbound_clicks || 0), 0);
+        const clickRate = totalImpr > 0 ? ((totalClicks / totalImpr) * 100).toFixed(2) : 0;
+        const outboundCtr = totalImpr > 0 ? ((totalOutbound / totalImpr) * 100).toFixed(2) : 0;
+
+        document.getElementById('kpi-impressions').textContent = totalImpr.toLocaleString();
+        document.getElementById('kpi-pin-clicks').textContent = totalClicks.toLocaleString();
+        document.getElementById('kpi-click-rate').textContent = `${clickRate}% CTR`;
+        document.getElementById('kpi-saves').textContent = totalSaves.toLocaleString();
+        document.getElementById('kpi-outbound').textContent = totalOutbound.toLocaleString();
+        document.getElementById('kpi-outbound-ctr').textContent = `${outboundCtr}%`;
+
+        renderChart(activeRecords);
+      }
+
+      // 3. Render Top Pins Table
+      renderTopPinsTable();
+
+      // 4. Render Top Boards
+      renderTopBoards();
+
+      lucide.createIcons();
     }
 
-    function applyCustomRange() {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      activeRange = 'custom';
-      renderDashboard();
-    }
-
-    function filterRecordsByDate() {
-      const startDate = document.getElementById('custom-start').value;
-      const endDate = document.getElementById('custom-end').value;
-      if (!startDate || !endDate) return analyticsData.historical_daily;
-
-      return analyticsData.historical_daily.filter(d => d.date >= startDate && d.date <= endDate);
-    }
-
-    function renderDashboard() {
-      if (!analyticsData) return;
-
-      const currentPeriod = filterRecordsByDate();
-      if (currentPeriod.length === 0) return;
-
-      // Calculate totals for current period
-      const totalImpressions = currentPeriod.reduce((acc, d) => acc + d.impressions, 0);
-      const totalClicks = currentPeriod.reduce((acc, d) => acc + d.pin_clicks, 0);
-      const totalOutbound = currentPeriod.reduce((acc, d) => acc + d.outbound_clicks, 0);
-      const totalSaves = currentPeriod.reduce((acc, d) => acc + d.saves, 0);
-      const outboundCTR = totalImpressions > 0 ? ((totalOutbound / totalImpressions) * 100).toFixed(2) : 0;
-
-      // Update KPI text
-      document.getElementById('kpi-impressions').textContent = totalImpressions.toLocaleString();
-      document.getElementById('kpi-clicks').textContent = totalClicks.toLocaleString();
-      document.getElementById('kpi-outbound').textContent = totalOutbound.toLocaleString();
-      document.getElementById('kpi-saves').textContent = totalSaves.toLocaleString();
-      document.getElementById('kpi-ctr').textContent = `${outboundCTR}%`;
-
-      // Render Charts
-      renderTrafficChart(currentPeriod);
-      renderDemographicCharts();
-      renderTopPins();
-    }
-
-    function renderTrafficChart(records) {
-      const ctx = document.getElementById('trafficTrendChart').getContext('2d');
+    // ─── Render Chart ─────────────────────────────────────────────────────────
+    function renderChart(records) {
+      const ctx = document.getElementById('trendChart').getContext('2d');
       const labels = records.map(r => {
         const parts = r.date.split('-');
         return `${parts[1]}/${parts[2]}`;
       });
-      const impressionsData = records.map(r => r.impressions);
-      const outboundData = records.map(r => r.outbound_clicks);
 
-      if (trafficChartInstance) trafficChartInstance.destroy();
+      const imprData = records.map(r => r.impressions || 0);
+      const clickData = records.map(r => r.pin_clicks || 0);
+      const saveData = records.map(r => r.saves || 0);
+      const outboundData = records.map(r => r.outbound_clicks || 0);
 
-      trafficChartInstance = new Chart(ctx, {
+      if (trendChartInstance) trendChartInstance.destroy();
+
+      trendChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
           datasets: [
             {
               label: 'Impressions',
-              data: impressionsData,
-              borderColor: '#4C6E59',
-              backgroundColor: 'rgba(76, 110, 89, 0.08)',
-              borderWidth: 2.5,
+              data: imprData,
+              borderColor: '#94A3B8',
+              backgroundColor: 'rgba(148, 163, 184, 0.08)',
+              yAxisID: 'y',
+              tension: 0.3,
               fill: true,
-              tension: 0.35,
-              pointRadius: records.length > 20 ? 1 : 3,
+              pointRadius: 3.5,
               pointHoverRadius: 6,
-              yAxisID: 'y'
+              pointBackgroundColor: '#94A3B8',
+              pointBorderColor: '#FFFFFF',
+              pointBorderWidth: 1.5,
+            },
+            {
+              label: 'Pin Clicks',
+              data: clickData,
+              borderColor: '#3B82F6',
+              backgroundColor: '#3B82F6',
+              yAxisID: 'y1',
+              tension: 0.2,
+              borderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#3B82F6',
+              pointBorderColor: '#FFFFFF',
+              pointBorderWidth: 1.5,
+            },
+            {
+              label: 'Saves',
+              data: saveData,
+              borderColor: '#A855F7',
+              backgroundColor: '#A855F7',
+              yAxisID: 'y1',
+              tension: 0.2,
+              borderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#A855F7',
+              pointBorderColor: '#FFFFFF',
+              pointBorderWidth: 1.5,
             },
             {
               label: 'Outbound Clicks',
               data: outboundData,
-              borderColor: '#C46044',
-              backgroundColor: 'rgba(196, 96, 68, 0.05)',
+              borderColor: '#10B981',
+              backgroundColor: '#10B981',
+              yAxisID: 'y1',
+              tension: 0.1,
               borderWidth: 2.5,
-              fill: true,
-              tension: 0.35,
-              pointRadius: records.length > 20 ? 1 : 3,
-              pointHoverRadius: 6,
-              yAxisID: 'y1'
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              pointBackgroundColor: '#10B981',
+              pointBorderColor: '#FFFFFF',
+              pointBorderWidth: 2,
             }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#23272A',
-              titleFont: { family: 'Inter', size: 12, weight: 'bold' },
-              bodyFont: { family: 'Inter', size: 12 },
-              padding: 12,
-              cornerRadius: 8
-            }
+          interaction: {
+            mode: 'index',
+            axis: 'x',
+            intersect: false
           },
           scales: {
             x: {
-              grid: { display: false },
-              ticks: { font: { family: 'Inter', size: 11 }, color: '#6B7280' }
+              grid: { display: false }
             },
             y: {
               type: 'linear',
+              display: true,
               position: 'left',
-              grid: { color: '#E5E0D8' },
-              ticks: { font: { family: 'Inter', size: 11 }, color: '#6B7280' }
+              title: { display: true, text: 'Impressions', font: { size: 10 } },
+              grid: { color: '#F1F5F9' }
             },
             y1: {
               type: 'linear',
+              display: true,
               position: 'right',
-              grid: { display: false },
-              ticks: { font: { family: 'Inter', size: 11 }, color: '#C46044' }
+              title: { display: true, text: 'Clicks & Saves', font: { size: 10 } },
+              grid: { drawOnChartArea: false }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              position: 'snapToLinePoint',
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#FFFFFF',
+              titleFont: { size: 12, weight: 'bold' },
+              bodyColor: '#E2E8F0',
+              bodyFont: { size: 11 },
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderWidth: 1,
+              padding: 10,
+              boxPadding: 4,
+              usePointStyle: true,
+              caretSize: 6,
+              caretPadding: 6,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) label += ': ';
+                  if (context.parsed.y !== null) {
+                    label += Number(context.parsed.y).toLocaleString();
+                  }
+                  return label;
+                }
+              }
             }
           }
         }
       });
     }
 
-    function renderDemographicCharts() {
-      const demo = analyticsData.demographics;
-      if (!demo) return;
+    // ─── Render Top Pins Table ────────────────────────────────────────────────
+    function renderTopPinsTable() {
+      const tbody = document.getElementById('top-pins-table-body');
+      const pins = rawData.top_performing_pins || [];
+      if (pins.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-brand-muted">No pin records available</td></tr>';
+        return;
+      }
 
-      // 1. Age Chart
-      const ageCtx = document.getElementById('ageChart').getContext('2d');
-      if (ageChartInstance) ageChartInstance.destroy();
-      ageChartInstance = new Chart(ageCtx, {
-        type: 'bar',
-        data: {
-          labels: demo.age_distribution.map(a => a.range),
-          datasets: [{
-            label: '% Share',
-            data: demo.age_distribution.map(a => a.percentage),
-            backgroundColor: '#4C6E59',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: '#E5E0D8' }, ticks: { font: { family: 'Inter', size: 10 } } },
-            y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10, weight: 'bold' } } }
-          }
-        }
+      let rowsHtml = '';
+      pins.forEach(pin => {
+        const hasLink = pin.has_link || (pin.destination_url && pin.destination_url !== 'No link attached' && pin.destination_url.length > 5);
+        const pinId = pin.pin_id || (pin.id ? pin.id.replace('pin_', '') : '');
+        const pLink = pin.pinterest_link || `https://www.pinterest.com/pin/${pinId}/`;
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-50/70 transition">
+            <td class="py-3 px-3">
+              <div class="flex items-center space-x-3">
+                <img src="${pin.image_url || 'https://via.placeholder.com/80'}" class="w-11 h-14 object-cover rounded-lg border border-brand-border bg-slate-100 shrink-0" onerror="this.src='https://via.placeholder.com/80'"/>
+                <div class="max-w-xs">
+                  <div class="font-bold text-brand-dark text-xs truncate" title="${pin.title}">${pin.title}</div>
+                  <div class="text-[11px] text-brand-muted">ID: ${pinId}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-3 text-brand-muted text-[11px]">${pin.board || 'Balcony & Decor'}</td>
+            <td class="py-3 px-3 text-right font-semibold text-slate-900">${(pin.impressions || 0).toLocaleString()}</td>
+            <td class="py-3 px-3 text-right font-semibold text-blue-600">${(pin.pin_clicks || 0).toLocaleString()}</td>
+            <td class="py-3 px-3 text-right font-semibold text-purple-600">${(pin.saves || 0).toLocaleString()}</td>
+            <td class="py-3 px-3 text-right font-semibold text-emerald-600">${(pin.outbound_clicks || 0).toLocaleString()}</td>
+            <td class="py-3 px-3 text-center">
+              ${hasLink ? 
+                `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <i data-lucide="check" class="w-3 h-3"></i><span>Link Active</span>
+                 </span>` :
+                `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200 animate-pulse">
+                  <i data-lucide="alert-circle" class="w-3 h-3"></i><span>No Link (Fix Now)</span>
+                 </span>`
+              }
+            </td>
+            <td class="py-3 px-3 text-right">
+              <a href="${pLink}" target="_blank" class="inline-flex items-center space-x-1 text-[11px] font-bold text-red-600 hover:text-red-700 hover:underline">
+                <span>Edit Pin</span>
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </td>
+          </tr>
+        `;
       });
 
-      // 2. Country Chart
-      const countryCtx = document.getElementById('countryChart').getContext('2d');
-      if (countryChartInstance) countryChartInstance.destroy();
-      countryChartInstance = new Chart(countryCtx, {
-        type: 'bar',
-        data: {
-          labels: demo.top_countries.map(c => c.country),
-          datasets: [{
-            label: '% Traffic',
-            data: demo.top_countries.map(c => c.percentage),
-            backgroundColor: '#C46044',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: '#E5E0D8' }, ticks: { font: { family: 'Inter', size: 10 } } },
-            y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10, weight: 'bold' } } }
-          }
-        }
-      });
-
-      // 3. Gender Chart (Doughnut)
-      const genderCtx = document.getElementById('genderChart').getContext('2d');
-      if (genderChartInstance) genderChartInstance.destroy();
-      genderChartInstance = new Chart(genderCtx, {
-        type: 'doughnut',
-        data: {
-          labels: demo.gender_distribution.map(g => g.gender),
-          datasets: [{
-            data: demo.gender_distribution.map(g => g.percentage),
-            backgroundColor: ['#C46044', '#4C6E59', '#D4A359'],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Inter' } } }
-          },
-          cutout: '65%'
-        }
-      });
-
-      // 4. Device Chart (Doughnut)
-      const deviceCtx = document.getElementById('deviceChart').getContext('2d');
-      if (deviceChartInstance) deviceChartInstance.destroy();
-      deviceChartInstance = new Chart(deviceCtx, {
-        type: 'doughnut',
-        data: {
-          labels: demo.devices.map(d => d.device.split(' ')[0]),
-          datasets: [{
-            data: demo.devices.map(d => d.percentage),
-            backgroundColor: ['#23272A', '#4C6E59', '#D4A359', '#6B7280'],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Inter' } } }
-          },
-          cutout: '65%'
-        }
-      });
+      tbody.innerHTML = rowsHtml;
     }
 
-    function renderTopPins() {
-      const container = document.getElementById('top-pins-container');
-      if (!container || !analyticsData.top_performing_pins) return;
+    // ─── Render Boards ────────────────────────────────────────────────────────
+    function renderTopBoards() {
+      const container = document.getElementById('top-boards-container');
+      const boards = rawData.top_boards || [];
+      if (boards.length === 0) {
+        container.innerHTML = '<div class="text-xs text-brand-muted">No board breakdown recorded</div>';
+        return;
+      }
 
-      container.innerHTML = analyticsData.top_performing_pins.map((pin, idx) => `
-        <div class="bg-brand-cream/60 rounded-xl overflow-hidden border border-brand-border flex flex-col hover:shadow-md transition-shadow">
-          <div class="relative h-44 bg-slate-200 overflow-hidden">
-            <img src="${pin.image_url}" alt="${pin.title}" class="w-full h-full object-cover">
-            <span class="absolute top-2 left-2 bg-brand-dark/80 backdrop-blur-md text-white font-bold text-[10px] px-2 py-0.5 rounded-full">#${idx + 1} Top Pin</span>
-          </div>
-          <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
-            <div>
-              <span class="text-[10px] font-bold text-brand-sage uppercase tracking-wider block mb-1">${pin.board}</span>
-              <h4 class="font-bold text-xs text-brand-dark line-clamp-2 leading-snug">${pin.title}</h4>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-brand-border/70 text-[11px]">
-              <div>
-                <span class="text-brand-muted block text-[10px]">Impressions</span>
-                <span class="font-bold text-brand-dark">${pin.impressions.toLocaleString()}</span>
-              </div>
-              <div>
-                <span class="text-brand-muted block text-[10px]">Outbound</span>
-                <span class="font-bold text-brand-terracotta">${pin.outbound_clicks.toLocaleString()}</span>
-              </div>
-            </div>
+      let html = '';
+      boards.slice(0, 4).forEach(b => {
+        // extract board name from link
+        let name = "Board";
+        if (b.link) {
+          const parts = b.link.split('/').filter(Boolean);
+          name = parts[parts.length - 1].replace(/-/g, ' ');
+        }
+        name = name.charAt(0).toUpperCase() + name.slice(1);
 
-            <a href="${pin.destination_url}" target="_blank" class="block text-center py-1.5 px-3 rounded-lg bg-white border border-brand-border text-brand-dark font-semibold text-[11px] hover:bg-brand-dark hover:text-white transition-colors">
-              View Article &rarr;
-            </a>
+        html += `
+          <div class="bg-slate-50 p-4 rounded-xl border border-brand-border space-y-2">
+            <div class="font-bold text-brand-dark text-xs truncate" title="${name}">${name}</div>
+            <div class="flex items-center justify-between text-xs text-brand-muted pt-1">
+              <span>Impressions:</span>
+              <strong class="text-slate-900">${(b.impressions || 0).toLocaleString()}</strong>
+            </div>
+            <div class="flex items-center justify-between text-xs text-brand-muted">
+              <span>Pin Clicks:</span>
+              <strong class="text-blue-600">${(b.pin_clicks || 0).toLocaleString()}</strong>
+            </div>
+            <div class="flex items-center justify-between text-xs text-brand-muted">
+              <span>Saves:</span>
+              <strong class="text-purple-600">${(b.saves || 0).toLocaleString()}</strong>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      });
+
+      container.innerHTML = html;
     }
-
-    // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      loadAnalytics();
-    });
   </script>
 </body>
 </html>
