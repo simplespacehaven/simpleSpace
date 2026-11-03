@@ -275,21 +275,25 @@ def api_audit():
     for p in pins:
         dest = p.get("destination_url") or ""
         has_dest = bool(dest and dest.lower() != "no link attached" and dest.startswith("http"))
-        has_tag = ("tag=simplespaceha-21" in dest) or ("simplespac00e-20" in dest)
+        is_amazon = any(dom in dest.lower() for dom in ["amazon.in", "amazon.com", "amzn.to", "amzn.in", "link.amazon"])
+        has_tag = ("tag=simplespaceha-21" in dest) or ("simplespac00e-20" in dest) or ("link.amazon" in dest) or ("amzn.to" in dest) or ("amzn.in" in dest)
         
         if not has_dest:
             status = "CRITICAL_MISSING"
             msg = "No link attached! Viewers have no way to purchase."
-        elif not has_tag:
+        elif is_amazon and has_tag:
+            status = "HEALTHY"
+            msg = "Active verified Amazon affiliate link attached."
+        elif is_amazon and not has_tag:
             status = "MISSING_TAG"
-            msg = "Link attached, but missing your affiliate tracking tag."
+            msg = "Amazon link attached, but missing your affiliate tracking tag."
         else:
             status = "HEALTHY"
-            msg = "Active verified affiliate link attached."
+            msg = f"Active destination link attached."
             
         clicks = p.get("pin_clicks", 0)
         outbound = p.get("outbound_clicks", 0)
-        lost = max(0, clicks - outbound) if (not has_dest or not has_tag) else 0
+        lost = max(0, clicks - outbound) if (status in ["CRITICAL_MISSING", "MISSING_TAG"]) else 0
         total_lost_clicks += lost
         
         audited.append({

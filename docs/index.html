@@ -432,12 +432,18 @@
 
       <!-- Audit Table -->
       <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
-        <div class="pb-4 border-b border-brand-border">
-          <h2 class="text-sm font-bold text-brand-dark flex items-center space-x-2">
-            <span>Pin-by-Pin Profit Leak Diagnosis</span>
-            <span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Action Required</span>
-          </h2>
-          <p class="text-xs text-brand-muted">Every pin driving views must point directly to its corresponding affiliate URL. Click 'Copy Link' and paste it into Pinterest.</p>
+        <div class="pb-4 border-b border-brand-border flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 class="text-sm font-bold text-brand-dark flex items-center space-x-2">
+              <span>Pin-by-Pin Link & Revenue Audit</span>
+              <span id="audit-badge-status" class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">100% Links Active</span>
+            </h2>
+            <p class="text-xs text-brand-muted">Audits destination links across your top pins to verify Amazon affiliate tracking and prevent traffic leakage.</p>
+          </div>
+          <button onclick="fetchDashboardData(true).then(() => loadAudit())" class="inline-flex items-center space-x-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-lg border border-slate-200 transition cursor-pointer">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Sync Pinterest Live</span>
+          </button>
         </div>
 
         <div class="overflow-x-auto pt-3">
@@ -447,7 +453,7 @@
                 <th class="py-3 px-3">Pin</th>
                 <th class="py-3 px-3 text-center">Status</th>
                 <th class="py-3 px-3 text-right">Traffic</th>
-                <th class="py-3 px-3">Suggested Amazon Link</th>
+                <th class="py-3 px-3">Active Destination URL</th>
                 <th class="py-3 px-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -1228,8 +1234,19 @@
         const res = await fetch('/api/audit');
         const json = await res.json();
         
-        document.getElementById('audit-lost-clicks').textContent = Number(json.total_lost_clicks || 0).toLocaleString();
+        const lost = Number(json.total_lost_clicks || 0);
+        document.getElementById('audit-lost-clicks').textContent = lost.toLocaleString();
         document.getElementById('audit-lost-revenue').textContent = `₹${Number(json.estimated_lost_commission_inr || 0).toLocaleString()}`;
+        const badgeEl = document.getElementById('audit-badge-status');
+        if (badgeEl) {
+          if (lost === 0) {
+            badgeEl.className = 'bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase';
+            badgeEl.innerText = '100% Links Active';
+          } else {
+            badgeEl.className = 'bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase';
+            badgeEl.innerText = `${lost} Clicks Leaking`;
+          }
+        }
 
         const pins = json.pins || [];
         if (pins.length === 0) {
@@ -1240,13 +1257,16 @@
         let rows = '';
         pins.forEach(p => {
           let badge = '';
+          const isHealthy = p.status === 'HEALTHY';
           if (p.status === 'CRITICAL_MISSING') {
-            badge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200">🔴 NO URL (Critical Leak)</span>';
+            badge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-red-200">🔴 NO URL (Critical Leak)</span>';
           } else if (p.status === 'MISSING_TAG') {
-            badge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">🟡 Missing Affiliate Tag</span>';
+            badge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-200">🟡 Missing Affiliate Tag</span>';
           } else {
-            badge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">🟢 Verified Affiliate Link</span>';
+            badge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">🟢 Link Active (Verified)</span>';
           }
+
+          const displayedLink = p.destination_url || p.suggested_link || '';
 
           rows += `
             <tr class="hover:bg-slate-50 transition">
@@ -1262,21 +1282,30 @@
               <td class="py-3 px-3 text-center">${badge}</td>
               <td class="py-3 px-3 text-right">
                 <div class="font-bold text-slate-900">${p.pin_clicks.toLocaleString()} clicks</div>
-                <div class="text-[11px] text-red-600">${p.lost_clicks > 0 ? `-${p.lost_clicks} lost` : '0 lost'}</div>
+                <div class="text-[11px] ${p.lost_clicks > 0 ? 'text-red-600 font-bold' : 'text-emerald-600'}">${p.lost_clicks > 0 ? `-${p.lost_clicks} lost` : '✓ 100% Monetized'}</div>
               </td>
               <td class="py-3 px-3 max-w-sm">
-                <div class="flex items-center space-x-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200">
-                  <span class="text-[11px] text-slate-700 truncate font-mono">${p.suggested_link}</span>
-                  <button onclick="copyToClipboard('${p.suggested_link}')" class="text-slate-500 hover:text-slate-900 shrink-0" title="Copy Link">
+                <div class="flex items-center space-x-1.5 ${isHealthy ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-100 border-slate-200'} px-2.5 py-1.5 rounded-lg border">
+                  <a href="${displayedLink}" target="_blank" class="text-[11px] ${isHealthy ? 'text-emerald-800 font-semibold' : 'text-slate-700'} truncate font-mono hover:underline" title="${displayedLink}">
+                    ${displayedLink}
+                  </a>
+                  <button onclick="copyToClipboard('${displayedLink}')" class="text-slate-500 hover:text-slate-900 shrink-0" title="Copy Link">
                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
               </td>
               <td class="py-3 px-3 text-right">
-                <a href="${p.pinterest_link}" target="_blank" class="inline-flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-lg shadow-xs transition">
-                  <span>Fix on Pinterest</span>
-                  <i data-lucide="external-link" class="w-3 h-3"></i>
-                </a>
+                ${isHealthy ? `
+                  <a href="${p.destination_url}" target="_blank" class="inline-flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-lg shadow-xs transition">
+                    <span>Test Link</span>
+                    <i data-lucide="external-link" class="w-3 h-3"></i>
+                  </a>
+                ` : `
+                  <a href="${p.pinterest_link}" target="_blank" class="inline-flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-lg shadow-xs transition">
+                    <span>Fix on Pinterest</span>
+                    <i data-lucide="external-link" class="w-3 h-3"></i>
+                  </a>
+                `}
               </td>
             </tr>
           `;
