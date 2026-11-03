@@ -16,7 +16,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <script>
+    // Early theme initialization to prevent flash
+    (function() {
+      const saved = localStorage.getItem('ssh_theme');
+      if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -40,11 +49,43 @@
     }
   </script>
   <style>
-    body { background-color: #F8F9FA; color: #111827; }
-    .kpi-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    body { background-color: #F8F9FA; color: #111827; transition: background-color 0.15s ease, color 0.15s ease; }
+    .kpi-card { transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease; }
     .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
     .nav-tab.active { background-color: #111827; color: #FFFFFF; font-weight: 700; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .time-tab.active { background-color: #111827; color: #FFFFFF; font-weight: 600; }
+
+    /* Dark Mode Overrides */
+    html.dark body { background-color: #0b0f19; color: #f1f5f9; }
+    html.dark header { background-color: #0f172a !important; border-color: #1e293b !important; }
+    html.dark .bg-white { background-color: #0f172a !important; color: #f1f5f9; }
+    html.dark .bg-slate-50 { background-color: #162032 !important; color: #f1f5f9; }
+    html.dark .bg-slate-100 { background-color: #1e293b !important; }
+    html.dark .text-brand-dark,
+    html.dark .text-slate-900,
+    html.dark .text-slate-800 { color: #f8fafc !important; }
+    html.dark .text-slate-700,
+    html.dark .text-slate-600 { color: #cbd5e1 !important; }
+    html.dark .text-brand-muted,
+    html.dark .text-slate-500 { color: #94a3b8 !important; }
+    html.dark .border-brand-border,
+    html.dark .border-brand-border\/60,
+    html.dark .border-slate-200,
+    html.dark .border-slate-100 { border-color: #1e293b !important; }
+    html.dark .divide-brand-border > :not([hidden]) ~ :not([hidden]),
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+    html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b !important; }
+    html.dark tr.hover\:bg-slate-50:hover,
+    html.dark tr.hover\:bg-slate-50\/70:hover,
+    html.dark .hover\:bg-slate-50:hover,
+    html.dark .hover\:bg-slate-100:hover { background-color: #1e293b !important; }
+    html.dark .nav-tab { color: #94a3b8; }
+    html.dark .nav-tab:hover { color: #ffffff; background-color: #1e293b; }
+    html.dark .nav-tab.active { background-color: #E60023 !important; color: #ffffff !important; }
+    html.dark .time-tab { color: #94a3b8; }
+    html.dark .time-tab.active { background-color: #E60023 !important; color: #ffffff !important; }
+    html.dark #theme-toggle { background-color: #1e293b !important; border-color: #334155 !important; color: #f59e0b !important; }
+    html.dark footer { background-color: #0f172a !important; border-color: #1e293b !important; }
   </style>
 </head>
 <body class="min-h-screen font-sans flex flex-col antialiased">
@@ -65,9 +106,6 @@
         <div>
           <div class="flex items-center space-x-2">
             <h1 class="font-bold text-base text-brand-dark">Simple Space Haven</h1>
-            <span class="bg-red-50 text-red-700 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">
-              @simplespacehaven
-            </span>
           </div>
           <p class="text-xs text-brand-muted flex items-center space-x-1.5 pt-0.5">
             <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
@@ -79,8 +117,11 @@
       </div>
 
       <!-- Action Controls -->
-      <div class="flex items-center space-x-3">
-        <button id="btn-refresh" onclick="triggerLiveRefresh()" class="inline-flex items-center space-x-2 bg-brand-dark hover:bg-black text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95">
+      <div class="flex items-center space-x-2.5">
+        <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-lg border border-brand-border bg-white hover:bg-slate-100 text-slate-700 transition shadow-xs flex items-center justify-center cursor-pointer" title="Toggle Dark/Day Mode" aria-label="Toggle theme">
+          <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
+        </button>
+        <button id="btn-refresh" onclick="triggerLiveRefresh()" class="inline-flex items-center space-x-2 bg-brand-dark hover:bg-black text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition active:scale-95 cursor-pointer">
           <i data-lucide="refresh-cw" id="refresh-icon" class="w-3.5 h-3.5"></i>
           <span>Live API Refresh</span>
         </button>
@@ -252,7 +293,7 @@
           <div>
             <h2 class="text-sm font-bold text-brand-dark flex items-center space-x-2">
               <span>Top Performing Pins (Ranked by Traffic)</span>
-              <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Priority</span>
+              <span id="top-pins-count-badge" class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Top 30</span>
             </h2>
             <p class="text-xs text-brand-muted">Pins generating the highest organic search impressions and close-up views</p>
           </div>
@@ -525,6 +566,39 @@
 
   </main>
 
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-brand-border mt-auto py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <a href="https://www.pinterest.com/simplespacehaven/" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-[#E60023] hover:bg-[#ad081b] text-white flex items-center justify-center transition shadow-sm hover:scale-105 shrink-0" title="Visit @simplespacehaven on Pinterest">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+          </svg>
+        </a>
+        <div>
+          <div class="text-xs font-bold text-brand-dark">Simple Space Haven</div>
+          <div class="text-[11px] text-brand-muted">Official Pinterest Creator Profile & Monetization Engine</div>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3 text-xs">
+        <a href="https://www.pinterest.com/simplespacehaven/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 bg-red-50 hover:bg-red-100 text-[#E60023] font-semibold px-3 py-1.5 rounded-lg border border-red-200 transition">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+          </svg>
+          <span>pinterest.com/simplespacehaven</span>
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Pinterest Quick Redirect -->
+  <a href="https://www.pinterest.com/simplespacehaven/" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-[#E60023] hover:bg-[#ad081b] text-white flex items-center justify-center shadow-2xl hover:scale-110 transition duration-200 group" title="Open Simple Space Haven on Pinterest">
+    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+    </svg>
+  </a>
+
   <!-- JAVASCRIPT APP LOGIC -->
   <script>
     let rawData = null;
@@ -556,8 +630,36 @@
       };
     }
 
+    // ─── THEME TOGGLE (DARK / LIGHT MODE) ────────────────────────────────────
+    function initTheme() {
+      const saved = localStorage.getItem('ssh_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateThemeIcon();
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('ssh_theme', isDark ? 'dark' : 'light');
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const icon = document.getElementById('theme-icon');
+      if (icon) {
+        icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+        lucide.createIcons();
+      }
+    }
+
     // ─── Initial Load ─────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       lucide.createIcons();
       showLoadingState();
       fetchDashboardData();
@@ -899,6 +1001,10 @@
     function renderTopPinsTable() {
       const tbody = document.getElementById('top-pins-table-body');
       const pins = rawData.top_performing_pins || [];
+      const countBadge = document.getElementById('top-pins-count-badge');
+      if (countBadge && pins.length > 0) {
+        countBadge.innerText = `Top ${pins.length}`;
+      }
       if (pins.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-brand-muted">No pin records available</td></tr>';
         return;
@@ -1259,11 +1365,11 @@
           let badge = '';
           const isHealthy = p.status === 'HEALTHY';
           if (p.status === 'CRITICAL_MISSING') {
-            badge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-red-200">🔴 NO URL (Critical Leak)</span>';
+            badge = '<span class="inline-flex items-center space-x-1.5 text-red-600 font-bold text-xs"><span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span><span>No Destination URL</span></span>';
           } else if (p.status === 'MISSING_TAG') {
-            badge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-200">🟡 Missing Affiliate Tag</span>';
+            badge = '<span class="inline-flex items-center space-x-1.5 text-amber-600 font-bold text-xs"><span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span><span>Missing Affiliate Tag</span></span>';
           } else {
-            badge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">🟢 Link Active (Verified)</span>';
+            badge = '<span class="inline-flex items-center space-x-1.5 text-emerald-600 font-bold text-xs"><span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><span>Link Active (Verified)</span></span>';
           }
 
           const displayedLink = p.destination_url || p.suggested_link || '';

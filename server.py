@@ -105,21 +105,21 @@ def sync_pinterest_live():
     except Exception as e:
         print(f"Board fetch warning: {e}")
 
-    # 4. Fetch top pins
+    # 4. Fetch top pins (Top 30 Performing Pins with Concurrent Fetching)
     top_pins_list = []
     try:
-        tp_url = f"https://api.pinterest.com/v5/user_account/analytics/top_pins?start_date={start_date}&end_date={today}&metric_types=IMPRESSION,PIN_CLICK,SAVE,OUTBOUND_CLICK&sort_by=IMPRESSION"
+        from concurrent.futures import ThreadPoolExecutor
+        tp_url = f"https://api.pinterest.com/v5/user_account/analytics/top_pins?start_date={start_date}&end_date={today}&metric_types=IMPRESSION,PIN_CLICK,SAVE,OUTBOUND_CLICK&sort_by=IMPRESSION&num_of_pins=30"
         tp_res = requests.get(tp_url, headers=headers, timeout=15)
         if tp_res.status_code == 200:
-            pins_data = tp_res.json().get("pins", [])
-            for p in pins_data[:10]:
+            pins_data = tp_res.json().get("pins", [])[:30]
+
+            def fetch_single_pin(p):
                 pid = p.get("pin_id")
                 m = p.get("metrics", {})
-                
-                # Fetch individual pin details
                 p_info = {}
                 try:
-                    p_res = requests.get(f"https://api.pinterest.com/v5/pins/{pid}", headers=headers, timeout=8)
+                    p_res = requests.get(f"https://api.pinterest.com/v5/pins/{pid}", headers=headers, timeout=6)
                     if p_res.status_code == 200:
                         p_info = p_res.json()
                 except Exception:
@@ -127,14 +127,12 @@ def sync_pinterest_live():
 
                 media = p_info.get("media", {}).get("images", {})
                 img_url = media.get("1200x", {}).get("url") or media.get("600x", {}).get("url") or media.get("400x300", {}).get("url") or ""
-                
                 impr = int(m.get("IMPRESSION", 0))
                 clicks = int(m.get("PIN_CLICK", 0))
                 outbound = int(m.get("OUTBOUND_CLICK", 0))
                 saves = int(m.get("SAVE", 0))
                 ctr = round((clicks / max(impr, 1)) * 100, 2)
-                
-                top_pins_list.append({
+                return {
                     "id": f"pin_{pid}",
                     "pin_id": pid,
                     "title": p_info.get("title") or f"Pin #{pid}",
@@ -148,7 +146,10 @@ def sync_pinterest_live():
                     "saves": saves,
                     "ctr": ctr,
                     "pinterest_link": f"https://www.pinterest.com/pin/{pid}/"
-                })
+                }
+
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                top_pins_list = list(executor.map(fetch_single_pin, pins_data))
     except Exception as e:
         print(f"Top pins warning: {e}")
 
