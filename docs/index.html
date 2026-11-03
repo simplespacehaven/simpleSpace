@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Space Haven — Performance & Monetization Analytics</title>
+  <title>Simple Space Haven — Performance & Automation Command Center</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
@@ -27,12 +27,12 @@
             brand: {
               bg: '#F8F9FA',
               card: '#FFFFFF',
-              dark: '#1A1D20',
+              dark: '#111827',
               accent: '#E60023', // Pinterest Red
               green: '#059669',
               amber: '#D97706',
-              muted: '#64748B',
-              border: '#E2E8F0',
+              muted: '#6B7280',
+              border: '#E5E7EB',
             }
           }
         }
@@ -40,22 +40,23 @@
     }
   </script>
   <style>
-    body { background-color: #F8F9FA; color: #1A1D20; }
+    body { background-color: #F8F9FA; color: #111827; }
     .kpi-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
     .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-    .tab-btn.active { background-color: #1A1D20; color: #FFFFFF; font-weight: 600; }
+    .nav-tab.active { background-color: #111827; color: #FFFFFF; font-weight: 700; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .time-tab.active { background-color: #111827; color: #FFFFFF; font-weight: 600; }
   </style>
 </head>
 <body class="min-h-screen font-sans flex flex-col antialiased">
 
-  <!-- Top Notification Toast -->
-  <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-96 opacity-0 transition-all duration-300 bg-brand-dark text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2 border border-slate-700">
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-96 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2 border border-slate-700">
     <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
     <span id="toast-message">Data synchronized</span>
   </div>
 
   <!-- HEADER -->
-  <header class="bg-white border-b border-brand-border sticky top-0 z-40 shadow-sm">
+  <header class="bg-white border-b border-brand-border sticky top-0 z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center space-x-3.5">
         <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-red-200">
@@ -72,7 +73,7 @@
             <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
             <span>Live Pinterest API v5 Connected</span>
             <span>•</span>
-            <span>Synced: <strong id="last-synced-label" class="text-slate-700 font-medium">Checking...</strong></span>
+            <span>Status: <strong id="last-synced-label" class="text-slate-700 font-medium">Ready</strong></span>
           </p>
         </div>
       </div>
@@ -85,202 +86,370 @@
         </button>
       </div>
     </div>
+
+    <!-- MAIN NAVIGATION TABS -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-1">
+      <nav class="flex space-x-2 border-t border-brand-border/60 py-2.5 overflow-x-auto">
+        <button onclick="switchTab('performance')" id="tab-nav-performance" class="nav-tab active inline-flex items-center space-x-2 text-xs px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition shrink-0">
+          <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
+          <span>Performance & Analytics</span>
+        </button>
+        <button onclick="switchTab('winners')" id="tab-nav-winners" class="nav-tab inline-flex items-center space-x-2 text-xs px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition shrink-0">
+          <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-500"></i>
+          <span>Bet on Winners (Multiplier)</span>
+        </button>
+        <button onclick="switchTab('audit')" id="tab-nav-audit" class="nav-tab inline-flex items-center space-x-2 text-xs px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition shrink-0">
+          <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-red-500"></i>
+          <span>Link & Leak Audit</span>
+        </button>
+        <button onclick="switchTab('publisher')" id="tab-nav-publisher" class="nav-tab inline-flex items-center space-x-2 text-xs px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition shrink-0">
+          <i data-lucide="send" class="w-3.5 h-3.5 text-blue-500"></i>
+          <span>Drip Publisher</span>
+        </button>
+      </nav>
+    </div>
   </header>
 
-  <!-- MAIN DASHBOARD CONTENT -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-7">
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
 
-    <!-- ACCOUNT SUMMARY STRIP -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
-        <div class="p-2.5 rounded-lg bg-red-50 text-red-600">
-          <i data-lucide="eye" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Monthly Views</div>
-          <div class="text-lg font-extrabold text-brand-dark" id="stat-monthly-views">--</div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
-        <div class="p-2.5 rounded-lg bg-blue-50 text-blue-600">
-          <i data-lucide="image" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Total Pins</div>
-          <div class="text-lg font-extrabold text-brand-dark" id="stat-pin-count">--</div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
-        <div class="p-2.5 rounded-lg bg-purple-50 text-purple-600">
-          <i data-lucide="folder" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Boards</div>
-          <div class="text-lg font-extrabold text-brand-dark" id="stat-board-count">--</div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
-        <div class="p-2.5 rounded-lg bg-emerald-50 text-emerald-600">
-          <i data-lucide="users" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Followers</div>
-          <div class="text-lg font-extrabold text-brand-dark" id="stat-followers">--</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TIMEFRAME SELECTOR -->
-    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-brand-border">
-      <div class="flex items-center space-x-2">
-        <span class="text-xs font-semibold text-brand-muted px-1">Timeframe:</span>
-        <button id="btn-7d" onclick="setTimeRange('7d')" class="tab-btn active text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 7 Days</button>
-        <button id="btn-14d" onclick="setTimeRange('14d')" class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 14 Days</button>
-        <button id="btn-30d" onclick="setTimeRange('30d')" class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 30 Days</button>
-        <button id="btn-all" onclick="setTimeRange('all')" class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">All Recorded</button>
-      </div>
-      <div class="text-xs text-brand-muted" id="period-range-label">Showing selected range</div>
-    </div>
-
-    <!-- CORE KPI METRICS (THE MONETIZATION FUNNEL) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <!-- ===================================================================== -->
+    <!-- TAB 1: PERFORMANCE VIEW -->
+    <!-- ===================================================================== -->
+    <section id="tab-view-performance" class="space-y-7">
       
-      <!-- Impressions -->
-      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
-        <div class="flex items-center justify-between pb-3">
-          <span class="text-xs font-semibold text-brand-muted">Total Impressions</span>
-          <i data-lucide="trending-up" class="w-4 h-4 text-slate-400"></i>
-        </div>
-        <div class="text-2xl font-black text-brand-dark" id="kpi-impressions">--</div>
-        <div class="text-[11px] text-brand-muted pt-1">Views across Pinterest feeds</div>
-      </div>
-
-      <!-- Pin Clicks -->
-      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
-        <div class="flex items-center justify-between pb-3">
-          <span class="text-xs font-semibold text-brand-muted">Pin Clicks</span>
-          <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-blue-500"></i>
-        </div>
-        <div class="text-2xl font-black text-blue-600" id="kpi-pin-clicks">--</div>
-        <div class="text-[11px] text-slate-500 pt-1">Close-up / Pin views (<span id="kpi-click-rate">0%</span>)</div>
-      </div>
-
-      <!-- Saves / Repins -->
-      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
-        <div class="flex items-center justify-between pb-3">
-          <span class="text-xs font-semibold text-brand-muted">Saves (Repins)</span>
-          <i data-lucide="bookmark" class="w-4 h-4 text-purple-500"></i>
-        </div>
-        <div class="text-2xl font-black text-purple-600" id="kpi-saves">--</div>
-        <div class="text-[11px] text-slate-500 pt-1">Saved to user boards</div>
-      </div>
-
-      <!-- Outbound Clicks -->
-      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
-        <div class="flex items-center justify-between pb-3">
-          <span class="text-xs font-semibold text-brand-muted">Outbound Clicks</span>
-          <i data-lucide="external-link" class="w-4 h-4 text-emerald-600"></i>
-        </div>
-        <div class="text-2xl font-black text-emerald-600" id="kpi-outbound">--</div>
-        <div class="text-[11px] text-slate-500 pt-1">Clicked to Website / Amazon</div>
-      </div>
-
-      <!-- Outbound CTR -->
-      <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
-        <div class="flex items-center justify-between pb-3">
-          <span class="text-xs font-semibold text-brand-muted">Outbound CTR</span>
-          <i data-lucide="percent" class="w-4 h-4 text-amber-500"></i>
-        </div>
-        <div class="text-2xl font-black text-amber-600" id="kpi-outbound-ctr">--%</div>
-        <div class="text-[11px] text-slate-500 pt-1">Traffic-to-Buyer Conversion</div>
-      </div>
-
-    </div>
-
-    <!-- CONVERSION BOTTLE NECK DIAGNOSIS -->
-    <div id="alert-leak" class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start space-x-3.5 text-amber-900 text-xs leading-relaxed">
-      <div class="p-1 rounded-md bg-amber-200 text-amber-900 shrink-0 mt-0.5">
-        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-      </div>
-      <div>
-        <strong class="font-bold text-amber-950 block text-sm pb-0.5">Monetization Conversion Analysis</strong>
-        Users are discovering and clicking your pins in high volume, but almost none are exiting to buy. The table below highlights which viral pins are missing destination links.
-      </div>
-    </div>
-
-    <!-- DAILY PERFORMANCE TREND CHART -->
-    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
-      <div class="flex flex-wrap items-center justify-between pb-4 border-b border-brand-border gap-2">
-        <div>
-          <h2 class="text-sm font-bold text-brand-dark">Daily Engagement Trend</h2>
-          <p class="text-xs text-brand-muted">Impressions vs. Pin Clicks vs. Saves over time</p>
-        </div>
-        <div class="flex items-center space-x-3 text-xs">
-          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span>Impressions</span></span>
-          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Pin Clicks</span></span>
-          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span><span>Saves</span></span>
-          <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Outbound Clicks</span></span>
-        </div>
-      </div>
-      <div class="pt-4">
-        <div class="relative h-72 sm:h-80 w-full" id="chart-wrapper">
-          <div id="chart-loader" class="absolute inset-0 bg-white/90 backdrop-blur-xs flex flex-col items-center justify-center space-y-2 z-10 transition-opacity">
-            <i data-lucide="loader-2" class="w-7 h-7 text-red-600 animate-spin"></i>
-            <span class="text-xs font-semibold text-slate-700">Querying live metrics from Pinterest API...</span>
+      <!-- Account Summary Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+          <div class="p-2.5 rounded-lg bg-red-50 text-red-600">
+            <i data-lucide="eye" class="w-5 h-5"></i>
           </div>
-          <canvas id="trendChart"></canvas>
+          <div>
+            <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Monthly Views</div>
+            <div class="text-lg font-extrabold text-brand-dark" id="stat-monthly-views">--</div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+          <div class="p-2.5 rounded-lg bg-blue-50 text-blue-600">
+            <i data-lucide="image" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Total Pins</div>
+            <div class="text-lg font-extrabold text-brand-dark" id="stat-pin-count">--</div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+          <div class="p-2.5 rounded-lg bg-purple-50 text-purple-600">
+            <i data-lucide="folder" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Boards</div>
+            <div class="text-lg font-extrabold text-brand-dark" id="stat-board-count">--</div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-brand-border flex items-center space-x-3 shadow-xs">
+          <div class="p-2.5 rounded-lg bg-emerald-50 text-emerald-600">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-[11px] uppercase tracking-wider font-semibold text-brand-muted">Followers</div>
+            <div class="text-lg font-extrabold text-brand-dark" id="stat-followers">--</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- TOP PERFORMING PINS (MONEY OPPORTUNITY TABLE) -->
-    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
-      <div class="flex items-center justify-between pb-4 border-b border-brand-border">
-        <div>
+      <!-- Timeframe Selector -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-brand-border">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-semibold text-brand-muted px-1">Timeframe:</span>
+          <button id="btn-7d" onclick="setTimeRange('7d')" class="time-tab active text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 7 Days</button>
+          <button id="btn-14d" onclick="setTimeRange('14d')" class="time-tab text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 14 Days</button>
+          <button id="btn-30d" onclick="setTimeRange('30d')" class="time-tab text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">Last 30 Days</button>
+          <button id="btn-all" onclick="setTimeRange('all')" class="time-tab text-xs px-3 py-1.5 rounded-lg border border-brand-border hover:bg-slate-50 transition">All Recorded</button>
+        </div>
+        <div class="text-xs text-brand-muted" id="period-range-label">Showing selected range</div>
+      </div>
+
+      <!-- Funnel KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+          <div class="flex items-center justify-between pb-3">
+            <span class="text-xs font-semibold text-brand-muted">Total Impressions</span>
+            <i data-lucide="trending-up" class="w-4 h-4 text-slate-400"></i>
+          </div>
+          <div class="text-2xl font-black text-brand-dark" id="kpi-impressions">--</div>
+          <div class="text-[11px] text-brand-muted pt-1">Views across Pinterest feeds</div>
+        </div>
+
+        <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+          <div class="flex items-center justify-between pb-3">
+            <span class="text-xs font-semibold text-brand-muted">Pin Clicks</span>
+            <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-blue-500"></i>
+          </div>
+          <div class="text-2xl font-black text-blue-600" id="kpi-pin-clicks">--</div>
+          <div class="text-[11px] text-slate-500 pt-1">Close-up / Pin views (<span id="kpi-click-rate">0%</span>)</div>
+        </div>
+
+        <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+          <div class="flex items-center justify-between pb-3">
+            <span class="text-xs font-semibold text-brand-muted">Saves (Repins)</span>
+            <i data-lucide="bookmark" class="w-4 h-4 text-purple-500"></i>
+          </div>
+          <div class="text-2xl font-black text-purple-600" id="kpi-saves">--</div>
+          <div class="text-[11px] text-slate-500 pt-1">Saved to user boards</div>
+        </div>
+
+        <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+          <div class="flex items-center justify-between pb-3">
+            <span class="text-xs font-semibold text-brand-muted">Outbound Clicks</span>
+            <i data-lucide="external-link" class="w-4 h-4 text-emerald-600"></i>
+          </div>
+          <div class="text-2xl font-black text-emerald-600" id="kpi-outbound">--</div>
+          <div class="text-[11px] text-slate-500 pt-1">Clicked to Website / Amazon</div>
+        </div>
+
+        <div class="kpi-card bg-white rounded-2xl p-5 border border-brand-border shadow-xs">
+          <div class="flex items-center justify-between pb-3">
+            <span class="text-xs font-semibold text-brand-muted">Outbound CTR</span>
+            <i data-lucide="percent" class="w-4 h-4 text-amber-500"></i>
+          </div>
+          <div class="text-2xl font-black text-amber-600" id="kpi-outbound-ctr">--%</div>
+          <div class="text-[11px] text-slate-500 pt-1">Traffic-to-Buyer Conversion</div>
+        </div>
+      </div>
+
+      <!-- Trend Chart -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+        <div class="flex flex-wrap items-center justify-between pb-4 border-b border-brand-border gap-2">
+          <div>
+            <h2 class="text-sm font-bold text-brand-dark">Daily Engagement Trend</h2>
+            <p class="text-xs text-brand-muted">Impressions vs. Pin Clicks vs. Saves over time</p>
+          </div>
+          <div class="flex items-center space-x-3 text-xs">
+            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span><span>Impressions</span></span>
+            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Pin Clicks</span></span>
+            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span><span>Saves</span></span>
+            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Outbound Clicks</span></span>
+          </div>
+        </div>
+        <div class="pt-4">
+          <div class="relative h-72 sm:h-80 w-full" id="chart-wrapper">
+            <div id="chart-loader" class="absolute inset-0 bg-white/90 backdrop-blur-xs flex flex-col items-center justify-center space-y-2 z-10 transition-opacity">
+              <i data-lucide="loader-2" class="w-7 h-7 text-red-600 animate-spin"></i>
+              <span class="text-xs font-semibold text-slate-700">Querying live metrics from Pinterest API...</span>
+            </div>
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Pins Table -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+        <div class="flex items-center justify-between pb-4 border-b border-brand-border">
+          <div>
+            <h2 class="text-sm font-bold text-brand-dark flex items-center space-x-2">
+              <span>Top Performing Pins (Ranked by Traffic)</span>
+              <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Priority</span>
+            </h2>
+            <p class="text-xs text-brand-muted">Pins generating the highest organic search impressions and close-up views</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto pt-3">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-brand-border text-brand-muted uppercase text-[10px] tracking-wider font-semibold">
+                <th class="py-3 px-3">Pin / Product</th>
+                <th class="py-3 px-3">Board</th>
+                <th class="py-3 px-3 text-right">Impressions</th>
+                <th class="py-3 px-3 text-right">Pin Clicks</th>
+                <th class="py-3 px-3 text-right">Saves</th>
+                <th class="py-3 px-3 text-right">Outbound</th>
+                <th class="py-3 px-3 text-center">Affiliate Link Status</th>
+                <th class="py-3 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="top-pins-table-body" class="divide-y divide-brand-border text-slate-700">
+              <tr>
+                <td colspan="8" class="text-center py-8 text-brand-muted">Loading top pin data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Boards -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+        <div class="pb-4 border-b border-brand-border">
+          <h2 class="text-sm font-bold text-brand-dark">Board Traffic Distribution</h2>
+          <p class="text-xs text-brand-muted">Which boards drive the majority of your impressions and clicks</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-5" id="top-boards-container">
+          <!-- Boards inserted dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: BET ON WINNING HORSES (MULTIPLIER HUB) -->
+    <!-- ===================================================================== -->
+    <section id="tab-view-winners" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+        <div class="flex items-start justify-between flex-wrap gap-4 pb-5 border-b border-brand-border">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="p-1.5 rounded-lg bg-amber-100 text-amber-800">
+                <i data-lucide="flame" class="w-4 h-4"></i>
+              </span>
+              <h2 class="text-base font-bold text-brand-dark">Algorithmic Momentum Detection ("Winning Horses")</h2>
+            </div>
+            <p class="text-xs text-brand-muted pt-1">
+              Pinterest's algorithm is actively boosting these specific items. Multiplying creative angles for these proven winners generates 5-10x higher ROI than posting unproven products.
+            </p>
+          </div>
+          <span class="bg-emerald-50 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-200">
+            Rule: 90% Revenue Comes from Top 5% Pins
+          </span>
+        </div>
+
+        <!-- Winners Grid -->
+        <div id="winners-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+          <div class="text-center py-10 text-brand-muted col-span-2">Loading winning products...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: LINK & LEAK AUDIT (MONEYMAKER WATCHDOG) -->
+    <!-- ===================================================================== -->
+    <section id="tab-view-audit" class="hidden space-y-6">
+      
+      <!-- Leak Stats Summary -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-red-50 rounded-2xl p-5 border border-red-200 flex items-center space-x-4">
+          <div class="p-3 bg-red-100 text-red-700 rounded-xl">
+            <i data-lucide="trending-down" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-red-700">Leaked Clicks (Dead Ends)</div>
+            <div class="text-2xl font-black text-red-950" id="audit-lost-clicks">--</div>
+            <div class="text-[11px] text-red-600">Users who clicked with no place to buy</div>
+          </div>
+        </div>
+
+        <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200 flex items-center space-x-4">
+          <div class="p-3 bg-amber-100 text-amber-700 rounded-xl">
+            <i data-lucide="indian-rupee" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">Est. Commission Lost</div>
+            <div class="text-2xl font-black text-amber-950" id="audit-lost-revenue">--</div>
+            <div class="text-[11px] text-amber-700">Calculated at 3% conversion rate</div>
+          </div>
+        </div>
+
+        <div class="bg-emerald-50 rounded-2xl p-5 border border-emerald-200 flex items-center space-x-4">
+          <div class="p-3 bg-emerald-100 text-emerald-700 rounded-xl">
+            <i data-lucide="check-check" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-emerald-800">Affiliate Tag Status</div>
+            <div class="text-lg font-bold text-emerald-950" id="audit-tag-status">tag=simplespaceha-21</div>
+            <div class="text-[11px] text-emerald-700">Verified Amazon Associates ID</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Table -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+        <div class="pb-4 border-b border-brand-border">
           <h2 class="text-sm font-bold text-brand-dark flex items-center space-x-2">
-            <span>Top Performing Pins (Ranked by Traffic)</span>
-            <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Priority</span>
+            <span>Pin-by-Pin Profit Leak Diagnosis</span>
+            <span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Action Required</span>
           </h2>
-          <p class="text-xs text-brand-muted">Pins generating the highest organic search impressions and close-up views</p>
+          <p class="text-xs text-brand-muted">Every pin driving views must point directly to its corresponding affiliate URL. Click 'Copy Link' and paste it into Pinterest.</p>
+        </div>
+
+        <div class="overflow-x-auto pt-3">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-brand-border text-brand-muted uppercase text-[10px] tracking-wider font-semibold">
+                <th class="py-3 px-3">Pin</th>
+                <th class="py-3 px-3 text-center">Status</th>
+                <th class="py-3 px-3 text-right">Traffic</th>
+                <th class="py-3 px-3">Suggested Amazon Link</th>
+                <th class="py-3 px-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body" class="divide-y divide-brand-border text-slate-700">
+              <tr>
+                <td colspan="5" class="text-center py-8 text-brand-muted">Running link audit...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="overflow-x-auto pt-3">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="border-b border-brand-border text-brand-muted uppercase text-[10px] tracking-wider font-semibold">
-              <th class="py-3 px-3">Pin / Product</th>
-              <th class="py-3 px-3">Board</th>
-              <th class="py-3 px-3 text-right">Impressions</th>
-              <th class="py-3 px-3 text-right">Pin Clicks</th>
-              <th class="py-3 px-3 text-right">Saves</th>
-              <th class="py-3 px-3 text-right">Outbound</th>
-              <th class="py-3 px-3 text-center">Affiliate Link Status</th>
-              <th class="py-3 px-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody id="top-pins-table-body" class="divide-y divide-brand-border text-slate-700">
-            <tr>
-              <td colspan="8" class="text-center py-8 text-brand-muted">Loading top pin data...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </section>
 
-    <!-- TOP BOARDS PERFORMANCE -->
-    <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
-      <div class="pb-4 border-b border-brand-border">
-        <h2 class="text-sm font-bold text-brand-dark">Board Traffic Distribution</h2>
-        <p class="text-xs text-brand-muted">Which boards drive the majority of your impressions and clicks</p>
+    <!-- ===================================================================== -->
+    <!-- TAB 4: DRIP PUBLISHER HUB -->
+    <!-- ===================================================================== -->
+    <section id="tab-view-publisher" class="hidden space-y-6">
+      
+      <!-- Scope Status Banner -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+        <div class="flex items-start justify-between flex-wrap gap-4 pb-5 border-b border-brand-border">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="p-1.5 rounded-lg bg-blue-100 text-blue-700">
+                <i data-lucide="key" class="w-4 h-4"></i>
+              </span>
+              <h2 class="text-base font-bold text-brand-dark">Pinterest API Publishing Capabilities</h2>
+            </div>
+            <p class="text-xs text-brand-muted pt-1">
+              Active Access Level: <strong>Trial Access (Read Authorized)</strong>
+            </p>
+          </div>
+          <span class="bg-blue-50 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200">
+            Scopes: pins:read, boards:read, user_accounts:read
+          </span>
+        </div>
+
+        <div class="pt-5 space-y-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-brand-border text-xs leading-relaxed text-slate-700 flex items-start space-x-3">
+            <i data-lucide="info" class="w-4 h-4 text-blue-600 mt-0.5 shrink-0"></i>
+            <div>
+              <strong class="font-bold text-slate-900 block pb-0.5">How Direct Pin Publishing Works:</strong>
+              Your current Trial access token has full <strong>Read/Analytics</strong> permissions. To enable 1-click automatic publishing via <code class="bg-slate-200 px-1 rounded text-slate-800">POST /v5/pins</code> without downloading CSVs, Pinterest requires granting the <code class="bg-slate-200 px-1 rounded text-slate-800">pins:write</code> scope in the developer portal.
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-5" id="top-boards-container">
-        <!-- Boards dynamically inserted here -->
+
+      <!-- Prepared Bulk Schedules Queue -->
+      <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
+        <div class="pb-4 border-b border-brand-border flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-brand-dark">Active Content Batches & Staggered Schedules</h2>
+            <p class="text-xs text-brand-muted">Automated schedule CSVs formatted with 10 Pinterest taxonomy keywords and optimal drip intervals</p>
+          </div>
+          <a href="https://in.pinterest.com/settings/bulk-create-pins/" target="_blank" class="inline-flex items-center space-x-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+            <span>Open Pinterest Bulk Creator</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5" id="publisher-batches-container">
+          <!-- Batches inserted dynamically -->
+        </div>
       </div>
-    </div>
+
+    </section>
 
   </main>
 
@@ -289,17 +458,15 @@
     let rawData = null;
     let trendChartInstance = null;
     let selectedRange = '7d';
+    let currentTab = 'performance';
 
-    // Register custom tooltip positioner that snaps strictly to the nearest plotted point on the graph line
+    // Tooltip positioner locking strictly to nearest plotted line point
     if (window.Chart && Chart.Tooltip && Chart.Tooltip.positioners) {
       Chart.Tooltip.positioners.snapToLinePoint = function(elements, eventPosition) {
         if (!elements || !elements.length) return false;
-        
         if (!eventPosition || eventPosition.x === undefined) {
           return { x: elements[0].element.x, y: elements[0].element.y };
         }
-
-        // Find the single plotted point on the graph lines closest to the user's cursor
         let closest = elements[0].element;
         let minDist = Infinity;
         for (let i = 0; i < elements.length; i++) {
@@ -313,11 +480,7 @@
             closest = el;
           }
         }
-
-        return {
-          x: closest.x,
-          y: closest.y
-        };
+        return { x: closest.x, y: closest.y };
       };
     }
 
@@ -328,15 +491,33 @@
       fetchDashboardData();
     });
 
-    // ─── Shimmer / Skeleton Loaders For Each Section ──────────────────────────
+    // ─── Tab Switching ────────────────────────────────────────────────────────
+    function switchTab(tabName) {
+      currentTab = tabName;
+      ['performance', 'winners', 'audit', 'publisher'].forEach(t => {
+        const view = document.getElementById(`tab-view-${t}`);
+        const nav = document.getElementById(`tab-nav-${t}`);
+        if (t === tabName) {
+          view.classList.remove('hidden');
+          nav.classList.add('active');
+        } else {
+          view.classList.add('hidden');
+          nav.classList.remove('active');
+        }
+      });
+
+      if (tabName === 'winners') loadWinners();
+      if (tabName === 'audit') loadAudit();
+      if (tabName === 'publisher') loadPublisherQueue();
+    }
+
+    // ─── Shimmer / Skeleton Loaders ───────────────────────────────────────────
     function showLoadingState() {
-      // 1. Stats strip skeleton
       ['stat-monthly-views', 'stat-pin-count', 'stat-board-count', 'stat-followers'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '<div class="h-6 w-16 bg-slate-200 animate-pulse rounded my-0.5"></div>';
       });
 
-      // 2. KPI cards skeleton
       ['kpi-impressions', 'kpi-pin-clicks', 'kpi-saves', 'kpi-outbound', 'kpi-outbound-ctr'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '<div class="h-8 w-24 bg-slate-200 animate-pulse rounded my-0.5"></div>';
@@ -344,17 +525,14 @@
       const rateEl = document.getElementById('kpi-click-rate');
       if (rateEl) rateEl.innerHTML = '<span class="inline-block h-3 w-10 bg-slate-200 animate-pulse rounded"></span>';
 
-      // 3. Header syncing indicator
       const syncedLabel = document.getElementById('last-synced-label');
       if (syncedLabel) {
         syncedLabel.innerHTML = '<span class="inline-flex items-center space-x-1.5 text-red-600 font-semibold"><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Streaming Pinterest API v5...</span></span>';
       }
 
-      // 4. Chart overlay loader
       const chartLoader = document.getElementById('chart-loader');
       if (chartLoader) chartLoader.style.display = 'flex';
 
-      // 5. Top Pins Table Skeleton
       const tbody = document.getElementById('top-pins-table-body');
       if (tbody) {
         let skelRows = '';
@@ -383,7 +561,6 @@
         tbody.innerHTML = skelRows;
       }
 
-      // 6. Top Boards Skeleton
       const boardsContainer = document.getElementById('top-boards-container');
       if (boardsContainer) {
         let skelBoards = '';
@@ -402,11 +579,9 @@
       lucide.createIcons();
     }
 
-    // ─── Fetch Data (Server API -> Local Fallback) ─────────────────────────────
+    // ─── Fetch Data ───────────────────────────────────────────────────────────
     async function fetchDashboardData(forceRefresh = false) {
-      if (forceRefresh) {
-        showLoadingState();
-      }
+      if (forceRefresh) showLoadingState();
       const endpoint = forceRefresh ? '/api/analytics/refresh' : '/api/analytics';
       
       try {
@@ -419,20 +594,16 @@
           throw new Error("Server API returned status " + res.status);
         }
       } catch (err) {
-        console.warn("API route failed, trying static analytics_data.json fallback:", err);
+        console.warn("API route failed, trying static fallback:", err);
         try {
           const fallbackRes = await fetch('analytics_data.json', { cache: 'no-store' });
-          if (fallbackRes.ok) {
-            rawData = await fallbackRes.json();
-          }
+          if (fallbackRes.ok) rawData = await fallbackRes.json();
         } catch (fbErr) {
-          console.error("All fetch sources failed:", fbErr);
+          console.error("Fallback error:", fbErr);
         }
       }
 
-      if (rawData) {
-        renderDashboard();
-      }
+      if (rawData) renderDashboard();
     }
 
     async function triggerLiveRefresh() {
@@ -458,10 +629,10 @@
       }, 3500);
     }
 
-    // ─── Range Handling ───────────────────────────────────────────────────────
+    // ─── Timeframe Handling ───────────────────────────────────────────────────
     function setTimeRange(range) {
       selectedRange = range;
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.time-tab').forEach(btn => btn.classList.remove('active'));
       const activeBtn = document.getElementById(`btn-${range}`);
       if (activeBtn) activeBtn.classList.add('active');
       renderDashboard();
@@ -471,24 +642,21 @@
       if (!rawData || !rawData.historical_daily) return [];
       const records = [...rawData.historical_daily];
       if (records.length === 0) return [];
-
       if (selectedRange === '7d') return records.slice(-7);
       if (selectedRange === '14d') return records.slice(-14);
       if (selectedRange === '30d') return records.slice(-30);
       return records;
     }
 
-    // ─── Render Complete Dashboard ────────────────────────────────────────────
+    // ─── Render Performance Tab ───────────────────────────────────────────────
     function renderDashboard() {
       if (!rawData) return;
 
-      // 1. Account Summary
       document.getElementById('stat-monthly-views').textContent = Number(rawData.total_audience_monthly || 0).toLocaleString();
       document.getElementById('stat-pin-count').textContent = Number(rawData.pin_count || 0).toLocaleString();
       document.getElementById('stat-board-count').textContent = rawData.board_count || (rawData.top_boards ? rawData.top_boards.length : 8);
       document.getElementById('stat-followers').textContent = rawData.follower_count || 10;
 
-      // Last Synced timestamp
       if (rawData.last_updated) {
         const d = new Date(rawData.last_updated);
         document.getElementById('last-synced-label').textContent = d.toLocaleDateString('en-US', {
@@ -496,7 +664,6 @@
         });
       }
 
-      // 2. Filtered Daily Records
       const activeRecords = filterRecords();
       if (activeRecords.length > 0) {
         const firstDate = activeRecords[0].date;
@@ -520,16 +687,11 @@
         renderChart(activeRecords);
       }
 
-      // 3. Render Top Pins Table
       renderTopPinsTable();
-
-      // 4. Render Top Boards
       renderTopBoards();
-
       lucide.createIcons();
     }
 
-    // ─── Render Chart ─────────────────────────────────────────────────────────
     function renderChart(records) {
       const chartLoader = document.getElementById('chart-loader');
       if (chartLoader) chartLoader.style.display = 'none';
@@ -613,15 +775,9 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            axis: 'x',
-            intersect: false
-          },
+          interaction: { mode: 'index', axis: 'x', intersect: false },
           scales: {
-            x: {
-              grid: { display: false }
-            },
+            x: { grid: { display: false } },
             y: {
               type: 'linear',
               display: true,
@@ -658,9 +814,7 @@
                 label: function(context) {
                   let label = context.dataset.label || '';
                   if (label) label += ': ';
-                  if (context.parsed.y !== null) {
-                    label += Number(context.parsed.y).toLocaleString();
-                  }
+                  if (context.parsed.y !== null) label += Number(context.parsed.y).toLocaleString();
                   return label;
                 }
               }
@@ -670,7 +824,6 @@
       });
     }
 
-    // ─── Render Top Pins Table ────────────────────────────────────────────────
     function renderTopPinsTable() {
       const tbody = document.getElementById('top-pins-table-body');
       const pins = rawData.top_performing_pins || [];
@@ -707,7 +860,7 @@
                   <i data-lucide="check" class="w-3 h-3"></i><span>Link Active</span>
                  </span>` :
                 `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200 animate-pulse">
-                  <i data-lucide="alert-circle" class="w-3 h-3"></i><span>No Link (Fix Now)</span>
+                  <i data-lucide="alert-circle" class="w-3 h-3"></i><span>No Link (Fix)</span>
                  </span>`
               }
             </td>
@@ -720,11 +873,9 @@
           </tr>
         `;
       });
-
       tbody.innerHTML = rowsHtml;
     }
 
-    // ─── Render Boards ────────────────────────────────────────────────────────
     function renderTopBoards() {
       const container = document.getElementById('top-boards-container');
       const boards = rawData.top_boards || [];
@@ -732,10 +883,8 @@
         container.innerHTML = '<div class="text-xs text-brand-muted">No board breakdown recorded</div>';
         return;
       }
-
       let html = '';
       boards.slice(0, 4).forEach(b => {
-        // extract board name from link
         let name = "Board";
         if (b.link) {
           const parts = b.link.split('/').filter(Boolean);
@@ -761,8 +910,202 @@
           </div>
         `;
       });
-
       container.innerHTML = html;
+    }
+
+    // ─── TAB 2: LOAD WINNERS (BET ON HORSES) ──────────────────────────────────
+    async function loadWinners() {
+      const container = document.getElementById('winners-container');
+      container.innerHTML = '<div class="text-center py-12 text-brand-muted col-span-2 flex flex-col items-center justify-center space-y-2"><i data-lucide="loader-2" class="w-6 h-6 animate-spin text-amber-500"></i><span>Scanning Pinterest algorithm for winning momentum...</span></div>';
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('/api/winners');
+        const json = await res.json();
+        const winners = json.winners || [];
+
+        if (winners.length === 0) {
+          container.innerHTML = '<div class="text-center py-8 text-brand-muted col-span-2">No pins exceed 1,000 views threshold yet.</div>';
+          return;
+        }
+
+        let html = '';
+        winners.forEach(w => {
+          html += `
+            <div class="bg-slate-50 rounded-2xl p-5 border border-brand-border shadow-xs flex flex-col justify-between space-y-4">
+              <div class="flex items-start space-x-4">
+                <img src="${w.image_url || 'https://via.placeholder.com/100'}" class="w-20 h-28 object-cover rounded-xl border border-brand-border bg-white shrink-0 shadow-xs"/>
+                <div class="space-y-1.5 flex-1 min-w-0">
+                  <div class="flex items-center space-x-2">
+                    <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Horse #${w.rank}</span>
+                    <span class="text-[11px] text-brand-muted truncate">${w.board}</span>
+                  </div>
+                  <h3 class="font-bold text-sm text-brand-dark leading-snug line-clamp-2" title="${w.title}">${w.title}</h3>
+                  <div class="flex items-center space-x-3 text-xs text-brand-muted pt-1">
+                    <span>🔥 <strong>${w.impressions.toLocaleString()}</strong> Views</span>
+                    <span>👆 <strong>${w.pin_clicks.toLocaleString()}</strong> Clicks</span>
+                    <span>💾 <strong>${w.saves.toLocaleString()}</strong> Saves</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3 Recommended Multipliers -->
+              <div class="bg-white p-3.5 rounded-xl border border-brand-border space-y-2">
+                <div class="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-1">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                  <span>3 High-Converting Multiplier Angles:</span>
+                </div>
+                <div class="grid grid-cols-1 gap-1.5 text-xs">
+                  ${w.angles.map(a => `
+                    <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-start space-x-2">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                      <div>
+                        <strong class="text-slate-900 text-[11px]">${a.type}:</strong>
+                        <span class="text-slate-600 text-[11px]">${a.headline} — ${a.desc}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-brand-border text-xs">
+                <button onclick="copyToClipboard('${w.suggested_link}')" class="inline-flex items-center space-x-1.5 text-emerald-700 font-semibold hover:text-emerald-800">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span>Copy Tagged Amazon Link</span>
+                </button>
+                <a href="https://www.pinterest.com/pin/${w.pin_id}/" target="_blank" class="inline-flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs transition">
+                  <span>Open on Pinterest</span>
+                  <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+        lucide.createIcons();
+      } catch (err) {
+        container.innerHTML = `<div class="text-red-600 text-center py-6 col-span-2">Error loading winners: ${err.message}</div>`;
+      }
+    }
+
+    // ─── TAB 3: LOAD AUDIT (LEAK AUDITOR) ─────────────────────────────────────
+    async function loadAudit() {
+      const tbody = document.getElementById('audit-table-body');
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-brand-muted"><i data-lucide="loader-2" class="w-6 h-6 animate-spin text-red-600 mx-auto mb-2"></i>Running real-time link audit across active pins...</td></tr>';
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('/api/audit');
+        const json = await res.json();
+        
+        document.getElementById('audit-lost-clicks').textContent = Number(json.total_lost_clicks || 0).toLocaleString();
+        document.getElementById('audit-lost-revenue').textContent = `₹${Number(json.estimated_lost_commission_inr || 0).toLocaleString()}`;
+
+        const pins = json.pins || [];
+        if (pins.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-brand-muted">No pins found for audit.</td></tr>';
+          return;
+        }
+
+        let rows = '';
+        pins.forEach(p => {
+          let badge = '';
+          if (p.status === 'CRITICAL_MISSING') {
+            badge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200">🔴 NO URL (Critical Leak)</span>';
+          } else if (p.status === 'MISSING_TAG') {
+            badge = '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">🟡 Missing Affiliate Tag</span>';
+          } else {
+            badge = '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">🟢 Verified Affiliate Link</span>';
+          }
+
+          rows += `
+            <tr class="hover:bg-slate-50 transition">
+              <td class="py-3 px-3">
+                <div class="flex items-center space-x-3">
+                  <img src="${p.image_url || 'https://via.placeholder.com/80'}" class="w-10 h-14 object-cover rounded-lg border border-brand-border bg-slate-100 shrink-0"/>
+                  <div class="max-w-xs">
+                    <div class="font-bold text-xs text-brand-dark truncate" title="${p.title}">${p.title}</div>
+                    <div class="text-[11px] text-brand-muted">${p.board}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3 px-3 text-center">${badge}</td>
+              <td class="py-3 px-3 text-right">
+                <div class="font-bold text-slate-900">${p.pin_clicks.toLocaleString()} clicks</div>
+                <div class="text-[11px] text-red-600">${p.lost_clicks > 0 ? `-${p.lost_clicks} lost` : '0 lost'}</div>
+              </td>
+              <td class="py-3 px-3 max-w-sm">
+                <div class="flex items-center space-x-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200">
+                  <span class="text-[11px] text-slate-700 truncate font-mono">${p.suggested_link}</span>
+                  <button onclick="copyToClipboard('${p.suggested_link}')" class="text-slate-500 hover:text-slate-900 shrink-0" title="Copy Link">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </td>
+              <td class="py-3 px-3 text-right">
+                <a href="${p.pinterest_link}" target="_blank" class="inline-flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] px-2.5 py-1.5 rounded-lg shadow-xs transition">
+                  <span>Fix on Pinterest</span>
+                  <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = rows;
+        lucide.createIcons();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-red-600 text-center py-6">Audit error: ${err.message}</td></tr>`;
+      }
+    }
+
+    // ─── TAB 4: LOAD PUBLISHER QUEUE ─────────────────────────────────────────
+    async function loadPublisherQueue() {
+      const container = document.getElementById('publisher-batches-container');
+      container.innerHTML = '<div class="text-center py-8 text-brand-muted col-span-2"><i data-lucide="loader-2" class="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2"></i>Inspecting content schedules...</div>';
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('/api/publisher/queue');
+        const json = await res.json();
+        const batches = json.batches || [];
+
+        if (batches.length === 0) {
+          container.innerHTML = '<div class="text-center py-8 text-brand-muted col-span-2">No bulk schedules found in output directory.</div>';
+          return;
+        }
+
+        let html = '';
+        batches.forEach(b => {
+          html += `
+            <div class="bg-slate-50 p-4 rounded-xl border border-brand-border flex items-center justify-between shadow-xs">
+              <div class="space-y-1 max-w-sm">
+                <div class="font-bold text-xs text-brand-dark truncate" title="${b.filename}">${b.filename}</div>
+                <div class="flex items-center space-x-3 text-[11px] text-brand-muted">
+                  <span>📦 <strong>${b.pin_count}</strong> Pins Ready</span>
+                  <span>🕒 Updated: ${b.modified}</span>
+                </div>
+              </div>
+              <a href="/output/${b.filename}" download class="inline-flex items-center space-x-1.5 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold px-3 py-1.5 rounded-lg border border-brand-border shadow-xs transition">
+                <i data-lucide="download" class="w-3.5 h-3.5 text-blue-600"></i>
+                <span>Download CSV</span>
+              </a>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+        lucide.createIcons();
+      } catch (err) {
+        container.innerHTML = `<div class="text-red-600 text-center py-6 col-span-2">Queue error: ${err.message}</div>`;
+      }
+    }
+
+    // ─── Utility: Copy to Clipboard ──────────────────────────────────────────
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Affiliate link copied to clipboard!");
+      }).catch(err => {
+        showToast("Link copy failed: " + err);
+      });
     }
   </script>
 </body>

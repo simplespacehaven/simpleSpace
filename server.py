@@ -213,6 +213,30 @@ def serve_assets(filename):
     return send_from_directory(BASE_DIR / "assets", filename)
 
 
+@app.route("/output/<path:filename>")
+def serve_output(filename):
+    return send_from_directory(OUTPUT_DIR, filename)
+
+
+def suggest_product_link(title):
+    t = (title or "").lower()
+    if 'grass' in t:
+        return "https://www.amazon.in/dp/B0BWDPDXJD?tag=simplespaceha-21"
+    elif 'mandir' in t or 'temple' in t:
+        return "https://www.amazon.in/dp/B08RF1JC8Y?tag=simplespaceha-21"
+    elif 'bistro' in t:
+        return "https://www.amazon.in/s?k=balcony+bistro+set+chairs+and+table&tag=simplespaceha-21"
+    elif 'thali' in t or 'thaali' in t:
+        return "https://www.amazon.in/dp/B0FZV94JR4?tag=simplespaceha-21"
+    elif 'chair' in t:
+        return "https://www.amazon.in/s?k=foldable+study+chair+with+writing+pad&tag=simplespaceha-21"
+    elif 'planter' in t:
+        return "https://www.amazon.in/s?k=balcony+railing+planters&tag=simplespaceha-21"
+    import urllib.parse
+    clean = "+".join(title.split()[:4])
+    return f"https://www.amazon.in/s?k={urllib.parse.quote_plus(clean)}&tag=simplespaceha-21"
+
+
 # ─── API Routes ───────────────────────────────────────────────────────────────
 @app.route("/api/health")
 def api_health():
@@ -239,6 +263,128 @@ def api_refresh_analytics():
         return jsonify({"status": "success", "data": fresh_data})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/audit", methods=["GET"])
+def api_audit():
+    """Scans all top pins and audits their affiliate link health and profit leaks."""
+    data = load_cached_data()
+    pins = data.get("top_performing_pins", [])
+    audited = []
+    total_lost_clicks = 0
+    for p in pins:
+        dest = p.get("destination_url") or ""
+        has_dest = bool(dest and dest.lower() != "no link attached" and dest.startswith("http"))
+        has_tag = ("tag=simplespaceha-21" in dest) or ("simplespac00e-20" in dest)
+        
+        if not has_dest:
+            status = "CRITICAL_MISSING"
+            msg = "No link attached! Viewers have no way to purchase."
+        elif not has_tag:
+            status = "MISSING_TAG"
+            msg = "Link attached, but missing your affiliate tracking tag."
+        else:
+            status = "HEALTHY"
+            msg = "Active verified affiliate link attached."
+            
+        clicks = p.get("pin_clicks", 0)
+        outbound = p.get("outbound_clicks", 0)
+        lost = max(0, clicks - outbound) if (not has_dest or not has_tag) else 0
+        total_lost_clicks += lost
+        
+        audited.append({
+            "id": p.get("id"),
+            "pin_id": p.get("pin_id"),
+            "title": p.get("title"),
+            "board": p.get("board"),
+            "image_url": p.get("image_url"),
+            "destination_url": dest,
+            "status": status,
+            "status_message": msg,
+            "impressions": p.get("impressions", 0),
+            "pin_clicks": clicks,
+            "outbound_clicks": outbound,
+            "lost_clicks": lost,
+            "suggested_link": suggest_product_link(p.get("title", "")),
+            "pinterest_link": p.get("pinterest_link")
+        })
+        
+    est_lost_revenue = round(total_lost_clicks * 0.03 * 45) # 3% conv, ₹45 avg comm
+    return jsonify({
+        "status": "success",
+        "total_audited": len(audited),
+        "total_lost_clicks": total_lost_clicks,
+        "estimated_lost_commission_inr": est_lost_revenue,
+        "pins": audited
+    })
+
+
+@app.route("/api/winners", methods=["GET"])
+def api_winners():
+    """Identifies viral horse pins and produces 3 actionable multiplier angles for each."""
+    data = load_cached_data()
+    pins = data.get("top_performing_pins", [])
+    winners = []
+    for p in pins:
+        impr = p.get("impressions", 0)
+        clicks = p.get("pin_clicks", 0)
+        if impr >= 1000 or clicks >= 40:
+            title = p.get("title", "")
+            winners.append({
+                "rank": len(winners) + 1,
+                "pin_id": p.get("pin_id"),
+                "title": title,
+                "board": p.get("board"),
+                "image_url": p.get("image_url"),
+                "impressions": impr,
+                "pin_clicks": clicks,
+                "saves": p.get("saves", 0),
+                "suggested_link": suggest_product_link(title),
+                "angles": [
+                    {
+                        "type": "Price & Prime Badge",
+                        "headline": "Under ₹999 Verified Deal",
+                        "desc": "High-contrast price badge on image to attract high-intent buyers."
+                    },
+                    {
+                        "type": "Renter Friendly Hack",
+                        "headline": "No-Drill Setup for Compact Balconies",
+                        "desc": "Emphasizes zero wall damage, portability, and instant aesthetic upgrade."
+                    },
+                    {
+                        "type": "Curated 3-Item Listicle",
+                        "headline": "3 Small Space Balcony Must-Haves",
+                        "desc": "Checklist layout with highest organic save-rate on Pinterest."
+                    }
+                ]
+            })
+    return jsonify({"status": "success", "winners": winners})
+
+
+@app.route("/api/publisher/queue", methods=["GET"])
+def api_publisher_queue():
+    """Returns local schedule CSV batches ready for drip distribution."""
+    output_dir = BASE_DIR / "output"
+    csvs = list(output_dir.glob("pinterest_*schedule.csv"))
+    batches = []
+    for c in csvs:
+        try:
+            with open(c, "r", encoding="utf-8") as f:
+                lines = len(f.readlines()) - 1
+            batches.append({
+                "filename": c.name,
+                "pin_count": max(0, lines),
+                "modified": datetime.datetime.fromtimestamp(c.stat().st_mtime).strftime("%b %d, %H:%M")
+            })
+        except Exception:
+            pass
+    batches.sort(key=lambda x: x["modified"], reverse=True)
+    return jsonify({
+        "status": "success",
+        "batches": batches[:8],
+        "token_scope": "pins:read, boards:read, user_accounts:read (Trial Access Active)",
+        "write_scope_ready": False
+    })
 
 
 # ─── Retained Pipeline Routes (For automated pin generation) ──────────────────
