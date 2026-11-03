@@ -298,6 +298,72 @@
     <!-- TAB 2: BET ON WINNING HORSES (MULTIPLIER HUB) -->
     <!-- ===================================================================== -->
     <section id="tab-view-winners" class="hidden space-y-6">
+
+      <!-- BATCH PREVIEW & DOWNLOAD SECTION (Expands when generated or clicked) -->
+      <div id="batch-preview-container" class="hidden bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-6 transition-all duration-300">
+        <!-- Header -->
+        <div class="flex items-start justify-between flex-wrap gap-4 border-b border-slate-800/80 pb-5">
+          <div class="space-y-1 max-w-2xl">
+            <div class="flex items-center space-x-2">
+              <span class="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 text-[11px] font-black px-2.5 py-1 rounded-md tracking-wider uppercase shadow-xs">
+                ⚡ Winning Batch Studio
+              </span>
+              <span id="preview-horse-badge" class="text-xs text-amber-300 font-bold bg-amber-950/60 border border-amber-800/50 px-2 py-0.5 rounded-md">
+                Horse #1
+              </span>
+              <span id="preview-active-status" class="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Ready for Launch</span>
+              </span>
+            </div>
+            <h3 id="preview-batch-title" class="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Generating High-Converting Variations...
+            </h3>
+            <p id="preview-batch-sub" class="text-xs text-slate-400 leading-relaxed">
+              3 distinct creative angles engineered in Ultra-HD (1000×1500) targeting high-intent buyer psychology: Deal Hunter, Renter Hack, and Curated Listicle.
+            </p>
+          </div>
+
+          <div class="flex items-center flex-wrap gap-2.5">
+            <a id="btn-download-csv" href="#" download class="inline-flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-md">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+              <span>Download Bulk Schedule CSV</span>
+            </a>
+            <button id="btn-force-regen" onclick="regenerateActiveBatch()" class="inline-flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2.5 rounded-xl text-xs transition" title="Force Re-render Graphics">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Re-render</span>
+            </button>
+            <button onclick="closeBatchPreview()" class="text-slate-400 hover:text-white p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition" title="Close Preview">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 Variations Cards Grid -->
+        <div id="preview-cards-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Launch workflow instructions bar -->
+        <div class="bg-slate-950/60 rounded-2xl p-4 sm:p-5 border border-slate-800 flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center space-x-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="sparkles" class="w-5 h-5 text-amber-400"></i>
+            </div>
+            <div class="text-xs space-y-0.5">
+              <div class="font-bold text-slate-200">How to launch this batch into Pinterest:</div>
+              <div class="text-slate-400">
+                Download the CSV and images above, then open <a href="https://www.pinterest.com/pin-builder/" target="_blank" class="text-amber-400 font-bold underline hover:text-amber-300">Pinterest Bulk Pin Creator</a>. All 3 pins will be scheduled with tagged affiliate links across days 1, 2, and 3.
+              </div>
+            </div>
+          </div>
+          <a href="https://www.pinterest.com/pin-builder/" target="_blank" class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-md shrink-0">
+            <span>Open Pinterest Bulk Creator</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+      </div>
+
       <div class="bg-white rounded-2xl p-6 border border-brand-border shadow-xs">
         <div class="flex items-start justify-between flex-wrap gap-4 pb-5 border-b border-brand-border">
           <div>
@@ -914,6 +980,9 @@
     }
 
     // ─── TAB 2: LOAD WINNERS (BET ON HORSES) ──────────────────────────────────
+    let currentActiveBatchPinId = null;
+    let currentActiveBatchRank = null;
+
     async function loadWinners() {
       const container = document.getElementById('winners-container');
       container.innerHTML = '<div class="text-center py-12 text-brand-muted col-span-2 flex flex-col items-center justify-center space-y-2"><i data-lucide="loader-2" class="w-6 h-6 animate-spin text-amber-500"></i><span>Scanning Pinterest algorithm for winning momentum...</span></div>';
@@ -931,6 +1000,12 @@
 
         let html = '';
         winners.forEach(w => {
+          const btnClass = w.has_batch 
+            ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+            : 'bg-amber-500 hover:bg-amber-600 text-slate-950';
+          const btnIcon = w.has_batch ? 'eye' : 'zap';
+          const btnText = w.has_batch ? 'Preview 3 Race Pins' : '⚡ Multiply into 3 Race Pins';
+
           html += `
             <div class="bg-slate-50 rounded-2xl p-5 border border-brand-border shadow-xs flex flex-col justify-between space-y-4">
               <div class="flex items-start space-x-4">
@@ -968,15 +1043,21 @@
                 </div>
               </div>
 
-              <div class="flex items-center justify-between pt-2 border-t border-brand-border text-xs">
-                <button onclick="copyToClipboard('${w.suggested_link}')" class="inline-flex items-center space-x-1.5 text-emerald-700 font-semibold hover:text-emerald-800">
-                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  <span>Copy Tagged Amazon Link</span>
+              <!-- Action Bar -->
+              <div class="pt-3 border-t border-brand-border flex items-center justify-between flex-wrap gap-2 text-xs">
+                <button onclick="generateWinnerBatch('${w.pin_id}', '${w.rank}')" id="btn-gen-${w.pin_id}" class="inline-flex items-center space-x-1.5 ${btnClass} font-bold px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
+                  <i data-lucide="${btnIcon}" class="w-4 h-4 ${w.has_batch ? '' : 'fill-current'}"></i>
+                  <span>${btnText}</span>
                 </button>
-                <a href="https://www.pinterest.com/pin/${w.pin_id}/" target="_blank" class="inline-flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs transition">
-                  <span>Open on Pinterest</span>
-                  <i data-lucide="external-link" class="w-3 h-3"></i>
-                </a>
+
+                <div class="flex items-center space-x-2">
+                  <button onclick="copyToClipboard('${w.suggested_link}')" title="Copy Tagged Amazon Link" class="p-2 rounded-xl border border-brand-border hover:bg-slate-200/70 text-slate-700 transition">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                  </button>
+                  <a href="https://www.pinterest.com/pin/${w.pin_id}/" target="_blank" title="Inspect on Pinterest" class="p-2 rounded-xl border border-brand-border hover:bg-slate-200/70 text-red-600 transition">
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                  </a>
+                </div>
               </div>
             </div>
           `;
@@ -987,6 +1068,149 @@
         container.innerHTML = `<div class="text-red-600 text-center py-6 col-span-2">Error loading winners: ${err.message}</div>`;
       }
     }
+
+    async function generateWinnerBatch(pinId, rank, force = false) {
+      currentActiveBatchPinId = pinId;
+      currentActiveBatchRank = rank;
+      const btn = document.getElementById(`btn-gen-${pinId}`);
+      const origHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Generating HD Variations...</span>`;
+        lucide.createIcons();
+      }
+
+      try {
+        const url = `/api/winners/generate?pin_id=${pinId}${force ? '&force=true' : ''}`;
+        const res = await fetch(url, { method: 'POST' });
+        const json = await res.json();
+        if (json.status !== 'success') {
+          throw new Error(json.message || 'Generation failed');
+        }
+
+        renderBatchPreview(json, rank);
+
+        if (btn) {
+          btn.disabled = false;
+          btn.className = "inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer";
+          btn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i><span>Preview 3 Race Pins</span>`;
+          lucide.createIcons();
+        }
+      } catch (err) {
+        alert('Error generating batch: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+          lucide.createIcons();
+        }
+      }
+    }
+
+    function regenerateActiveBatch() {
+      if (currentActiveBatchPinId) {
+        generateWinnerBatch(currentActiveBatchPinId, currentActiveBatchRank, true);
+      }
+    }
+
+    function renderBatchPreview(pack, rank) {
+      const section = document.getElementById('batch-preview-container');
+      if (!section) return;
+
+      document.getElementById('preview-horse-badge').innerText = `Horse #${rank || 'Winner'}`;
+      document.getElementById('preview-batch-title').innerText = `${pack.title} — Multiplier Pack`;
+      document.getElementById('preview-batch-sub').innerText = `Target Board: ${pack.board} | Direct Tagged Link: ${pack.affiliate_link}`;
+
+      const csvBtn = document.getElementById('btn-download-csv');
+      if (csvBtn) {
+        csvBtn.href = pack.csv_download_url;
+        csvBtn.setAttribute('download', `pinterest_schedule_horse_${pack.pin_id}.csv`);
+      }
+
+      const grid = document.getElementById('preview-cards-grid');
+      grid.innerHTML = (pack.variations || []).map((v, idx) => {
+        return `
+          <div class="bg-slate-800/90 rounded-2xl overflow-hidden border border-slate-700/80 flex flex-col justify-between shadow-xl group hover:border-amber-400/50 transition duration-200">
+            <div class="relative bg-slate-950 overflow-hidden">
+              <img src="${v.web_url}" alt="${v.title}" onclick="openLightbox('${v.web_url}', '${v.filename}')" class="w-full aspect-[2/3] object-cover cursor-pointer transition-transform duration-300 group-hover:scale-[1.02]"/>
+              <div class="absolute top-3 left-3">
+                <span class="bg-slate-950/85 backdrop-blur-md text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-700/80 uppercase tracking-wider">
+                  ${v.angle}
+                </span>
+              </div>
+              <div class="absolute top-3 right-3">
+                <button onclick="openLightbox('${v.web_url}', '${v.filename}')" class="p-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 text-slate-300 hover:text-white backdrop-blur-md border border-slate-700 block transition" title="Enlarge Preview">
+                  <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+              <div class="absolute bottom-3 inset-x-3">
+                <a href="${v.web_url}" download="${v.filename}" class="w-full text-center bg-slate-900/90 hover:bg-black text-white py-2 px-3 rounded-xl text-xs font-bold backdrop-blur-md border border-slate-700/80 transition shadow-sm flex items-center justify-center space-x-1.5">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                  <span>Download Pin #${idx+1} JPG</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="text-[11px] text-amber-400/90 font-mono flex items-center space-x-1.5">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                  <span>Drip Schedule: ${v.date}</span>
+                </div>
+                <h4 class="font-bold text-sm text-white leading-snug line-clamp-2">${v.title}</h4>
+                <p class="text-xs text-slate-300/80 line-clamp-3 leading-relaxed">${v.desc}</p>
+              </div>
+
+              <div class="pt-3 border-t border-slate-700/60 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-400">Target Board:</span>
+                  <span class="text-slate-200 font-semibold truncate max-w-[170px]">${pack.board}</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-400">Affiliate Link:</span>
+                  <a href="${pack.affiliate_link}" target="_blank" class="text-emerald-400 hover:text-emerald-300 font-semibold truncate max-w-[170px] inline-flex items-center space-x-1">
+                    <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400 shrink-0"></i>
+                    <span class="truncate">Amazon (tag=simplespaceha-21)</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      section.classList.remove('hidden');
+      lucide.createIcons();
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeBatchPreview() {
+      const section = document.getElementById('batch-preview-container');
+      if (section) section.classList.add('hidden');
+    }
+
+    function openLightbox(imgUrl, filename) {
+      const modal = document.getElementById('image-lightbox-modal');
+      const img = document.getElementById('lightbox-img');
+      const btn = document.getElementById('lightbox-download-btn');
+      if (modal && img) {
+        img.src = imgUrl;
+        if (btn) {
+          btn.href = imgUrl;
+          btn.setAttribute('download', filename || 'pin_variation.jpg');
+        }
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+      }
+    }
+
+    function closeLightbox() {
+      const modal = document.getElementById('image-lightbox-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
 
     // ─── TAB 3: LOAD AUDIT (LEAK AUDITOR) ─────────────────────────────────────
     async function loadAudit() {
@@ -1108,5 +1332,22 @@
       });
     }
   </script>
+
+  <!-- High-Res Image Lightbox Modal -->
+  <div id="image-lightbox-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="relative max-w-xl w-full flex flex-col items-center">
+      <button onclick="closeLightbox()" class="absolute -top-10 right-0 text-white/80 hover:text-white transition flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+        <span>Close (ESC)</span>
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <img id="lightbox-img" src="" alt="Pin preview" class="max-h-[80vh] w-auto rounded-2xl shadow-2xl border border-white/10 object-contain"/>
+      <div class="mt-4 flex items-center space-x-3">
+        <a id="lightbox-download-btn" href="#" download class="inline-flex items-center space-x-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs transition shadow-lg">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Download Ultra-HD JPG (1000×1500)</span>
+        </a>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
