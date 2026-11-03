@@ -221,9 +221,14 @@ def api_health():
 
 @app.route("/api/analytics", methods=["GET"])
 def api_get_analytics():
-    """Returns the latest stored analytics data."""
-    data = load_cached_data()
-    return jsonify(data)
+    """Calls Pinterest API live on every load to ensure true real-time metrics."""
+    try:
+        data = sync_pinterest_live()
+        return jsonify(data)
+    except Exception as e:
+        print(f"Live sync warning, using cache: {e}")
+        data = load_cached_data()
+        return jsonify(data)
 
 
 @app.route("/api/analytics/refresh", methods=["GET", "POST"])
@@ -262,11 +267,11 @@ def api_cancel():
 
 
 if __name__ == "__main__":
-    port = 5555
+    port = int(os.environ.get("PORT", 5555))
     print("=" * 65)
     print("  🚀 Simple Space Haven — Live Analytics Web Application")
-    print(f"  📊 Live Dashboard  → http://127.0.0.1:{port}")
-    print(f"  ⚡ API Endpoint    → http://127.0.0.1:{port}/api/analytics")
-    print(f"  🔄 Live Sync API   → http://127.0.0.1:{port}/api/analytics/refresh")
+    print(f"  📊 Live Dashboard  → http://0.0.0.0:{port}")
+    print(f"  ⚡ API Endpoint    → http://0.0.0.0:{port}/api/analytics")
+    print(f"  🔄 Live Sync API   → http://0.0.0.0:{port}/api/analytics/refresh")
     print("=" * 65)
     app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
